@@ -20,10 +20,37 @@ const ProfilePage = () => {
     setOfferData({ ...offerData, [name]: value });
   };
 
+
   const handleSubmit = () => {
-    console.log("New Offer Data:", offerData);
-    setShowModal(false);
+    // Get user info from localStorage
+    const username = localStorage.getItem("username");
+    const email = localStorage.getItem("email");
+  
+    // Add username and email to the offer data
+    const offerWithUserData = {
+      ...offerData,
+      username,
+      email,
+    };
+  
+    // Submit data to the server
+    fetch("http://localhost:3001/submit-package", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(offerWithUserData),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Success:", data);
+        setShowModal(false); // Close modal on success
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
   };
+  
 
   return (
     <div className="container mt-4">
