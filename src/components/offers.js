@@ -173,7 +173,7 @@ const MarketOffers = () => {
             className={`nav-link ${view === "sellers" ? "active" : ""}`}
             onClick={() => setView("sellers")}
           >
-            I want to buy luggage space
+            I want to sell luggage space
           </button>
         </li>
       </ul>
