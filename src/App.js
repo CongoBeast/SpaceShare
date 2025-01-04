@@ -7,6 +7,9 @@ import SidebarNavbar from './components/sidebar'
 import MarketOffers from './components/offers';
 import AboutPage from './pages/about'
 import ProfilePage from './pages/profile';
+import AuthPage from './pages/auth.js';
+import TopNavBar from "./components/TopNavBar";
+import NotificationsPage from './pages/notifications.js';
 
 
 
@@ -15,7 +18,6 @@ function App() {
 
     // <div className="d-flex">
     //   <SidebarNavbar />
-
     //   <div className="content flex-grow-1">
     //     <MarketOffers />
     //   </div>
@@ -24,18 +26,18 @@ function App() {
     <Router>
     <div className="d-flex">
       <SidebarNavbar />
-      <div className="content flex-grow-1">
-        <nav className="navbar navbar-expand-md navbar-dark bg-primary">
-          <div className="container-fluid">
-            <span className="navbar-brand">LuggageSpace</span>
-          </div>
-        </nav>
+
+      <div className="container-fluid">
+      <TopNavBar />
         <Routes>
           <Route path="/" element={<MarketOffers />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/auth" element={<AuthPage />} />
+          <Route path="/notifications" element={<NotificationsPage />} />
         </Routes>
       </div>
+    
     </div>
     </Router>
   );
