@@ -210,6 +210,8 @@ import React, { useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import "../App.css";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+
 
 const ProfilePage = () => {
   const [showModal, setShowModal] = useState(false);
@@ -225,9 +227,16 @@ const ProfilePage = () => {
     price: "",
   });
 
+  const navigate = useNavigate();
+
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setOfferData({ ...offerData, [name]: value });
+  };
+
+  const handleNavClick = (path) => {
+    navigate(path);
   };
 
   const handleSubmit = () => {
@@ -292,8 +301,8 @@ const ProfilePage = () => {
             <div className="card-body">
               <h2 className="card-title mb-0">5</h2>
               <p className="card-text small">Offers Made</p>
-              <button className="btn btn-light btn-sm mt-2">
-                <i className="bi bi-card-list me-2"></i> View Offers
+              <button className="btn btn-light btn-sm mt-2" onClick={() => handleNavClick('/myoffers')}>
+                <i className="bi bi-card-list me-2"></i> View My Offers
               </button>
             </div>
           </div>
