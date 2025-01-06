@@ -10,7 +10,9 @@ import ProfilePage from './pages/profile';
 import AuthPage from './pages/auth.js';
 import TopNavBar from "./components/TopNavBar";
 import NotificationsPage from './pages/notifications.js';
-
+import MyOffersPage from './pages/myoffers.js';
+import OfferRequestsPage from './pages/offerRequests.js';
+import RequestResponses from './pages/requestResponse.js'
 
 
 function App() {
@@ -35,6 +37,9 @@ function App() {
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/notifications" element={<NotificationsPage />} />
+          <Route path="/myoffers" element={<MyOffersPage />} />
+          <Route path="/myrequests" element={<RequestResponses />} />
+          <Route path="/offerrequests" element={<OfferRequestsPage/>}></Route>
         </Routes>
       </div>
     
