@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Tab, Tabs, Card, Button, Row, Col } from "react-bootstrap";
 import { FaCheck, FaUser } from "react-icons/fa";
 
-const OfferRequestsPage = () => {
+const UserRequestsPage = () => {
   const [key, setKey] = useState("pending");
 
   // Sample data
@@ -123,4 +123,4 @@ const RequestTiles = ({ requests, handleAccept }) => {
   );
 };
 
-export default OfferRequestsPage;
+export default UserRequestsPage;

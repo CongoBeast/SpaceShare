@@ -313,8 +313,8 @@ const ProfilePage = () => {
             <div className="card-body">
               <h2 className="card-title mb-0">3</h2>
               <p className="card-text small">Offers Requested</p>
-              <button className="btn btn-light btn-sm mt-2">
-                <i className="bi bi-envelope-open me-2"></i> View Requests
+              <button className="btn btn-light btn-sm mt-2" onClick={() => handleNavClick('/myrequests')}>
+                <i className="bi bi-envelope-open me-2"></i> View My Requests
               </button>
             </div>
           </div>
@@ -325,8 +325,8 @@ const ProfilePage = () => {
             <div className="card-body">
               <h2 className="card-title mb-0">7</h2>
               <p className="card-text small">Requests on Your Offers</p>
-              <button className="btn btn-light btn-sm mt-2">
-                <i className="bi bi-people-fill me-2"></i> View Requests
+              <button className="btn btn-light btn-sm mt-2" onClick={() => handleNavClick('/offerrequests')}>
+                <i className="bi bi-people-fill me-2"></i> View Offer Requests
               </button>
             </div>
           </div>
@@ -342,10 +342,17 @@ const ProfilePage = () => {
         </button>
 
         <button
-          className="btn btn-secondary"
+          className="btn btn-secondary me-3"
           onClick={() => setShowModal(true)}
         >
           <i className="bi bi-gear-fill me-2"></i> Change Contact Settings
+        </button>
+
+        <button
+          className="btn btn-danger me-3 "
+          onClick={() => setShowModal(true)}
+        >
+          <i className="bi bi-trash-fill me-2"></i> Delete Account
         </button>
       </div>
 
