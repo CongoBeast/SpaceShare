@@ -107,7 +107,7 @@ const MarketOffers = () => {
         className="card shadow-sm mb-4"
         style={{
           borderRadius: "8px",
-          backgroundColor: "#f8f9fa",
+          backgroundColor: type === "buyers" ? "#e8f4fc" : "#fde8e8", // Faded blue for buyers, faded red for sellers
         }}
       >
         <div className="card-body">
@@ -143,6 +143,8 @@ const MarketOffers = () => {
       </div>
     </div>
   );
+  
+
 
   return (
     <div className="container mt-4">
@@ -159,21 +161,42 @@ const MarketOffers = () => {
       </div>
 
       {/* Tabs for Buyers and Sellers */}
-      <ul className="nav nav-tabs">
+
+      <ul className="nav nav-tabs justify-content-center" style={{ borderBottom: "2px solid #ddd" }}>
         <li className="nav-item">
           <button
             className={`nav-link ${view === "buyers" ? "active" : ""}`}
             onClick={() => setView("buyers")}
+            style={{
+              borderRadius: "8px 8px 0 0",
+              backgroundColor: view === "buyers" ? "#0d6efd" : "#f8f9fa",
+              color: view === "buyers" ? "#fff" : "#000",
+              border: view === "buyers" ? "2px solid #0d6efd" : "2px solid #ddd",
+              margin: "0 5px",
+              padding: "5px 10px",
+              transition: "background-color 0.3s, color 0.3s",
+              fontWeight: view === "buyers" ? "bold" : "normal",
+            }}
           >
-            I want to buy luggage space
+            <i className="bi bi-basket2 me-2"></i> Buy Space
           </button>
         </li>
         <li className="nav-item">
           <button
             className={`nav-link ${view === "sellers" ? "active" : ""}`}
             onClick={() => setView("sellers")}
+            style={{
+              borderRadius: "8px 8px 0 0",
+              backgroundColor: view === "sellers" ? "#0d6efd" : "#f8f9fa",
+              color: view === "sellers" ? "#fff" : "#000",
+              border: view === "sellers" ? "2px solid #0d6efd" : "2px solid #ddd",
+              margin: "0 5px",
+              padding: "5px 10px",
+              transition: "background-color 0.3s, color 0.3s",
+              fontWeight: view === "sellers" ? "bold" : "normal",
+            }}
           >
-            I want to sell luggage space
+            <i className="bi bi-box-arrow-in-down me-2"></i> Sell Space
           </button>
         </li>
       </ul>
