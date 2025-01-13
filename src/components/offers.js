@@ -101,18 +101,71 @@ const MarketOffers = () => {
     setShowModal(true);
   };
 
+  // const renderOfferCard = (offer, type) => (
+  //   <div className="col-md-4" key={offer.username + offer.datePosted}>
+  //     <div
+  //       className="card shadow-sm mb-4"
+  //       style={{
+  //         borderRadius: "8px",
+  //         backgroundColor: type === "buyers" ? "#e8f4fc" : "#fde8e8", // Faded blue for buyers, faded red for sellers
+  //       }}
+  //     >
+  //       <div className="card-body">
+  //         <h5 className="card-title">{offer.username}</h5>
+  //         <p className="card-text">
+  //           {type === "buyers" ? (
+  //             <>
+  //               <strong>Space Needed:</strong> {offer.spaceNeeded} <br />
+  //             </>
+  //           ) : (
+  //             <>
+  //               <strong>Space Available:</strong> {offer.spaceAvailable} <br />
+  //               <strong>Price:</strong> ${offer.price} <br />
+  //             </>
+  //           )}
+  //           <strong>Goods Type:</strong> {offer.goodsType} <br />
+  //           <strong>Departure:</strong> {offer.departure} <br />
+  //           <strong>Destination:</strong> {offer.destination} <br />
+  //           <strong>Date Posted:</strong> {offer.datePosted} <br />
+  //           <strong>Departure Date:</strong> {offer.dateDeparture} <br />
+  //           <strong>Expiration Date:</strong> {offer.dateExpiration} <br />
+  //         </p>
+  //         <div className="d-flex align-items-center">
+  //           <i className="bi bi-clock me-2 text-warning"></i>
+  //           <span>
+  //             Expires on {new Date(offer.dateExpiration).toLocaleDateString()}
+  //           </span>
+  //         </div>
+  //         <button className="btn btn-primary text-white mb-2" onClick={contactClick}>
+  //           Send Contact Request
+  //         </button>
+  //       </div>
+  //     </div>
+  //   </div>
+  // );
   const renderOfferCard = (offer, type) => (
-    <div className="col-md-4" key={offer.username + offer.datePosted}>
+    <div className="col-md-3" key={offer.username + offer.datePosted}>
       <div
-        className="card shadow-sm mb-4"
+        className="card shadow-sm mb-3"
         style={{
           borderRadius: "8px",
-          backgroundColor: type === "buyers" ? "#e8f4fc" : "#fde8e8", // Faded blue for buyers, faded red for sellers
+          backgroundColor: type === "buyers" ? "#e8f4fc" : "#fde8e8",
+          padding: "10px",
         }}
       >
-        <div className="card-body">
-          <h5 className="card-title">{offer.username}</h5>
-          <p className="card-text">
+        <div className="card-body text-center">
+          {/* Circular image */}
+          <div className="mb-3">
+            <img
+              src={offer.profileImage || "./profile-download.jpg"} // Replace with actual profile image URL
+              alt={`${offer.username}'s profile`}
+              className="rounded-circle"
+              style={{ width: "50px", height: "50px", objectFit: "cover" }}
+            />
+          </div>
+          {/* Offer details */}
+          <h6 className="card-title mb-2">{offer.username}</h6>
+          <p className="card-text text-muted" style={{ fontSize: "0.9rem" }}>
             {type === "buyers" ? (
               <>
                 <strong>Space Needed:</strong> {offer.spaceNeeded} <br />
@@ -126,19 +179,25 @@ const MarketOffers = () => {
             <strong>Goods Type:</strong> {offer.goodsType} <br />
             <strong>Departure:</strong> {offer.departure} <br />
             <strong>Destination:</strong> {offer.destination} <br />
-            <strong>Date Posted:</strong> {offer.datePosted} <br />
+            <strong>Posted:</strong> {offer.datePosted} <br />
             <strong>Departure Date:</strong> {offer.dateDeparture} <br />
-            <strong>Expiration Date:</strong> {offer.dateExpiration} <br />
           </p>
-          <div className="d-flex align-items-center">
-            <i className="bi bi-clock me-2 text-warning"></i>
-            <span>
-              Expires on {new Date(offer.dateExpiration).toLocaleDateString()}
-            </span>
-          </div>
-          <button className="btn btn-primary text-white mb-2" onClick={contactClick}>
-            Send Contact Request
+          {/* Contact button */}
+          <button
+            className="btn btn-success d-block mx-auto mb-2"
+            onClick={contactClick}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <i className="bi bi-envelope me-2"></i> Contact
           </button>
+          {/* Expiration text */}
+          <p className="text-muted fst-italic" style={{ fontSize: "0.8rem" }}>
+            Expires on {new Date(offer.dateExpiration).toLocaleDateString()}
+          </p>
         </div>
       </div>
     </div>
