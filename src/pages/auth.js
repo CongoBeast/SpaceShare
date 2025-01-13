@@ -211,6 +211,8 @@ const AuthPage = () => {
       lastLoggedIn: !isLogin ? new Date().toISOString() : new Date().toISOString(),
     };
 
+    console.log(requestData)
+
     axios
       .post(`http://localhost:3001/${endpoint}`, requestData)
       .then((response) => {
