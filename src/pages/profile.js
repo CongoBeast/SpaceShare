@@ -218,6 +218,7 @@ const ProfilePage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
   const [offerData, setOfferData] = useState({
+    type: "",
     space: "",
     goodsType: "",
     denomination: "",
@@ -225,6 +226,7 @@ const ProfilePage = () => {
     destination: "",
     departureDate: "",
     price: "",
+    username: localStorage.user
   });
 
   const navigate = useNavigate();
@@ -243,7 +245,7 @@ const ProfilePage = () => {
     setIsSubmitting(true);
 
     // Get user info from localStorage
-    const username = localStorage.getItem("username");
+    const username = localStorage.getItem("user");
     const email = localStorage.getItem("email");
 
     // Calculate expiration date (2 days after departure date)
@@ -286,12 +288,11 @@ const ProfilePage = () => {
     <div className="container mt-4">
       <div className="text-center">
         <img
-          src="https://via.placeholder.com/150"
+          src="https://github.com/CongoBeast/SpaceShare/blob/main/src/pages/profile-download.jpg?raw=true"
           alt="User Avatar"
           className="rounded-circle mb-3"
         />
-        <h2>{localStorage.username}</h2>
-        <p className="text-muted">john.doe@example.com</p>
+        <h2>{localStorage.user}</h2>
       </div>
 
       <div className="row mt-4">
@@ -373,6 +374,15 @@ const ProfilePage = () => {
                 </div>
                 <div className="modal-body">
                   <form>
+
+                  <div>
+                    <label for="type">Type of Offer</label>
+                    <select id="type" name="type" class="form-control" value={offerData.type} onChange={handleInputChange}>
+                      <option value="sell">Sell</option>
+                      <option value="buy">Buy</option>
+                    </select>
+                  </div>
+
                     {["space", "goodsType", "denomination", "departure", "destination", "departureDate", "price"].map(
                       (field) => (
                         <div className="mb-3" key={field}>
