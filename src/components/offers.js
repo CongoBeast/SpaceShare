@@ -157,7 +157,7 @@ const MarketOffers = () => {
           {/* Circular image */}
           <div className="mb-3">
             <img
-              src={offer.profileImage || "./profile-download.jpg"} // Replace with actual profile image URL
+              src={offer.profileImage || "https://github.com/CongoBeast/SpaceShare/blob/main/src/pages/profile-download.jpg?raw=true"} // Replace with actual profile image URL
               alt={`${offer.username}'s profile`}
               className="rounded-circle"
               style={{ width: "50px", height: "50px", objectFit: "cover" }}

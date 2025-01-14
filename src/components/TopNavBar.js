@@ -54,7 +54,7 @@ function TopNavBar() {
       <Container>
         {/* <Navbar.Brand href="#home">React-Bootstrap</Navbar.Brand> */}
         <Navbar.Brand as={Link} to="/">
-        <img src="https://github.com/CongoBeast/Tech-News/blob/master/src/components/tech-week.png?raw=true" 
+        <img src="https://github.com/CongoBeast/SpaceShare/blob/main/src/pages/ShareSpace-Logo2.png?raw=true" 
         alt="Imat Tech Logo"
           style={{ maxHeight: "50px", maxWidth: "50px" }}
           className="d-flex align-items-center"
