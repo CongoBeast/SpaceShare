@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import "../App.css";
+import axios from "axios"
 
 const MarketOffers = () => {
   const [view, setView] = useState("buyers"); // "buyers" or "sellers"
@@ -11,78 +12,40 @@ const MarketOffers = () => {
   const [showModal, setShowModal] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
 
-  // if(localStorage){
-  //   setIsLoggedIn(true)
-  // }
+  const [buyPackages, setBuyPackages] = useState([]); // State to store packages
+  const [sellPackages, setSellPackages] = useState([]); // State to store packages
 
 
-  const buyers = [
-    {
-      username: "BuyerOne",
-      spaceNeeded: "10kg",
-      goodsType: "Books",
-      departure: "Rome",
-      destination: "Madrid",
-      datePosted: "2024-12-10",
-      dateDeparture: "2024-12-15",
-      dateExpiration: "2024-12-20",
-    },
-    {
-      username: "BuyerTwo",
-      spaceNeeded: "5kg",
-      goodsType: "Electronics",
-      departure: "Berlin",
-      destination: "Paris",
-      datePosted: "2024-12-05",
-      dateDeparture: "2024-12-12",
-      dateExpiration: "2024-12-18",
-    },
-    {
-      username: "Buyer 4",
-      spaceNeeded: "5kg",
-      goodsType: "Electronics",
-      departure: "Berlin",
-      destination: "Paris",
-      datePosted: "2024-12-05",
-      dateDeparture: "2024-12-12",
-      dateExpiration: "2024-12-18",
-    },
-    {
-      username: "Buyer 5",
-      spaceNeeded: "5kg",
-      goodsType: "Electronics",
-      departure: "Berlin",
-      destination: "Paris",
-      datePosted: "2024-12-05",
-      dateDeparture: "2024-12-12",
-      dateExpiration: "2024-12-18",
-    },
-  ];
+  // Function to fetch packages from the server
+  const fetchSellPackages = async () => {
+    const type  = "sell"
+    try {
+      const response = await axios.get('http://localhost:3001/packages', {
+        params: { type }, // Pass the type as a query parameter
+      });
+      setSellPackages(response.data); // Update state with fetched packages
+    } catch (error) {
+      console.error('Error fetching packages:', error);
+    }
+  };
 
-  const sellers = [
-    {
-      username: "JohnDoe",
-      spaceAvailable: "20kg",
-      goodsType: "Clothes",
-      departure: "New York",
-      destination: "London",
-      datePosted: "2024-12-01",
-      dateDeparture: "2024-12-30",
-      dateExpiration: "2024-12-31",
-      price: 100,
-    },
-    {
-      username: "JaneSmith",
-      spaceAvailable: "10kg",
-      goodsType: "Documents",
-      departure: "Paris",
-      destination: "Berlin",
-      datePosted: "2024-12-05",
-      dateDeparture: "2024-12-29",
-      dateExpiration: "2024-12-31",
-      price: 50,
-    },
-  ];
+  const fetchBuyPackages = async () => {
+    const type = "buy"
+    try {
+      const response = await axios.get('http://localhost:3001/packages', {
+        params: { type }, // Pass the type as a query parameter
+      });
+      setBuyPackages(response.data); // Update state with fetched packages
+    } catch (error) {
+      console.error('Error fetching packages:', error);
+    }
+  };
+
+  // Fetch packages when the component mounts or when the type changes
+  useEffect(() => {
+    fetchBuyPackages();
+    fetchSellPackages();
+  }, []);
 
   // Filter data by search input
   const filterOffers = (offers) =>
@@ -91,6 +54,8 @@ const MarketOffers = () => {
         offer.departure.toLowerCase().includes(search.toLowerCase()) ||
         offer.destination.toLowerCase().includes(search.toLowerCase())
     );
+
+  console.log(buyPackages)
 
   const contactClick = () => {
     if (!isLoggedIn) {
@@ -101,48 +66,6 @@ const MarketOffers = () => {
     setShowModal(true);
   };
 
-  // const renderOfferCard = (offer, type) => (
-  //   <div className="col-md-4" key={offer.username + offer.datePosted}>
-  //     <div
-  //       className="card shadow-sm mb-4"
-  //       style={{
-  //         borderRadius: "8px",
-  //         backgroundColor: type === "buyers" ? "#e8f4fc" : "#fde8e8", // Faded blue for buyers, faded red for sellers
-  //       }}
-  //     >
-  //       <div className="card-body">
-  //         <h5 className="card-title">{offer.username}</h5>
-  //         <p className="card-text">
-  //           {type === "buyers" ? (
-  //             <>
-  //               <strong>Space Needed:</strong> {offer.spaceNeeded} <br />
-  //             </>
-  //           ) : (
-  //             <>
-  //               <strong>Space Available:</strong> {offer.spaceAvailable} <br />
-  //               <strong>Price:</strong> ${offer.price} <br />
-  //             </>
-  //           )}
-  //           <strong>Goods Type:</strong> {offer.goodsType} <br />
-  //           <strong>Departure:</strong> {offer.departure} <br />
-  //           <strong>Destination:</strong> {offer.destination} <br />
-  //           <strong>Date Posted:</strong> {offer.datePosted} <br />
-  //           <strong>Departure Date:</strong> {offer.dateDeparture} <br />
-  //           <strong>Expiration Date:</strong> {offer.dateExpiration} <br />
-  //         </p>
-  //         <div className="d-flex align-items-center">
-  //           <i className="bi bi-clock me-2 text-warning"></i>
-  //           <span>
-  //             Expires on {new Date(offer.dateExpiration).toLocaleDateString()}
-  //           </span>
-  //         </div>
-  //         <button className="btn btn-primary text-white mb-2" onClick={contactClick}>
-  //           Send Contact Request
-  //         </button>
-  //       </div>
-  //     </div>
-  //   </div>
-  // );
   const renderOfferCard = (offer, type) => (
     <div className="col-md-3" key={offer.username + offer.datePosted}>
       <div
@@ -168,11 +91,11 @@ const MarketOffers = () => {
           <p className="card-text text-muted" style={{ fontSize: "0.9rem" }}>
             {type === "buyers" ? (
               <>
-                <strong>Space Needed:</strong> {offer.spaceNeeded} <br />
+                <strong>Space Needed:</strong> {offer.space} <br />
               </>
             ) : (
               <>
-                <strong>Space Available:</strong> {offer.spaceAvailable} <br />
+                <strong>Space Available:</strong> {offer.space} <br />
                 <strong>Price:</strong> ${offer.price} <br />
               </>
             )}
@@ -180,7 +103,8 @@ const MarketOffers = () => {
             <strong>Departure:</strong> {offer.departure} <br />
             <strong>Destination:</strong> {offer.destination} <br />
             <strong>Posted:</strong> {offer.datePosted} <br />
-            <strong>Departure Date:</strong> {offer.dateDeparture} <br />
+            <strong>Price:</strong> {offer.price} {offer.denomination} <br />
+            <strong>Departure Date:</strong> {offer.departureDate} <br />
           </p>
           {/* Contact button */}
           <button
@@ -196,7 +120,7 @@ const MarketOffers = () => {
           </button>
           {/* Expiration text */}
           <p className="text-muted fst-italic" style={{ fontSize: "0.8rem" }}>
-            Expires on {new Date(offer.dateExpiration).toLocaleDateString()}
+            Expires on {new Date(offer.expirationDate).toLocaleDateString()}
           </p>
         </div>
       </div>
@@ -262,9 +186,9 @@ const MarketOffers = () => {
 
       <div className="row mt-4">
         {view === "buyers" &&
-          filterOffers(buyers).map((offer) => renderOfferCard(offer, "buyers"))}
+          filterOffers(buyPackages).map((offer) => renderOfferCard(offer, "buyers"))}
         {view === "sellers" &&
-          filterOffers(sellers).map((offer) =>
+          filterOffers(sellPackages).map((offer) =>
             renderOfferCard(offer, "sellers")
           )}
       </div>
