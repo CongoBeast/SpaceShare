@@ -218,7 +218,7 @@ const ProfilePage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
   const [offerData, setOfferData] = useState({
-    type: "",
+    type: "buy",
     space: "",
     goodsType: "",
     denomination: "",
@@ -383,23 +383,33 @@ const ProfilePage = () => {
                     </select>
                   </div>
 
-                    {["space", "goodsType", "denomination", "departure", "destination", "departureDate", "price"].map(
-                      (field) => (
-                        <div className="mb-3" key={field}>
-                          <label htmlFor={field} className="form-label">
-                            {field.charAt(0).toUpperCase() + field.slice(1)}
-                          </label>
-                          <input
-                            type={field === "departureDate" ? "date" : field === "price" ? "number" : "text"}
-                            className="form-control"
-                            id={field}
-                            name={field}
-                            value={offerData[field]}
-                            onChange={handleInputChange}
-                          />
-                        </div>
-                      )
-                    )}
+                  {["space", "goodsType", "denomination", "departure", "destination", "departureDate", "price"].map(
+                    (field) => (
+                      <div className="mb-3" key={field}>
+                        <label htmlFor={field} className="form-label">
+                          {field.charAt(0).toUpperCase() + field.slice(1)}
+                        </label>
+                        <input
+                          type={field === "departureDate" ? "date" : field === "price" ? "number" : "text"}
+                          className="form-control"
+                          id={field}
+                          name={field}
+                          value={offerData[field]}
+                          onChange={handleInputChange}
+                          placeholder={
+                            field === "space" ? "Enter available space (e.g. 2 phones , 1 laptop , 5kg)" :
+                            field === "goodsType" ? "Enter type of goods (e.g., Electronics , Clothes , Documents)" :
+                            field === "denomination" ? "Enter deal currency (e.g., USD)" :
+                            field === "departure" ? "Enter departure location (e.g., Shenzhen)" :
+                            field === "destination" ? "Enter destination (e.g., Harare)" :
+                            field === "departureDate" ? "Select departure date" :
+                            field === "price" ? "Enter price (e.g., 500/kg , 200 per phone)" :
+                            ""
+                          }
+                        />
+                      </div>
+                    )
+                  )}
                   </form>
                 </div>
                 <div className="modal-footer">
