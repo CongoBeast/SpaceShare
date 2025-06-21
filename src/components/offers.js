@@ -3,6 +3,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import "../App.css";
 import axios from "axios"
+import { useNavigate } from "react-router-dom";
 
 const MarketOffers = () => {
   const [view, setView] = useState("buyers"); // "buyers" or "sellers"
@@ -15,6 +16,161 @@ const MarketOffers = () => {
   const [buyPackages, setBuyPackages] = useState([]); // State to store packages
   const [sellPackages, setSellPackages] = useState([]); // State to store packages
 
+  const [message, setMessage] = useState("");
+  const [isSending, setIsSending] = useState(false);
+
+  const [toastMessage, setToastMessage] = useState(null);
+
+  const [selectedOffer, setSelectedOffer] = useState("");
+  const [selectedOfferUser, setSelectedOfferUser] = useState("");
+
+  const [requestData , setRequestData] = useState({
+    message: "",
+    reqquestee: localStorage.user,
+    offerId: "",
+    userId: "",
+    status:"Pending"
+  })
+
+  const [chatData , setChatData] = useState({
+    recieverName:"" ,
+    userName: "" ,
+    offerDetails: {},
+    userId: "",
+    recieverID: "",
+    lastMessage: "",
+    lastTimestamp: "",
+    timeCreated: "",
+    avatar: 'https://images.unsplash.com/photo-1693071689934-80da90442826?w=700&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fHNtaWxpbmclMjBibGFjayUyMG1hbnxlbnwwfHwwfHx8MA%3D%3D',
+    read: false
+  })
+
+  const [messageData , setMessageData] = useState({
+    chatId:"",
+    recieverName:"" ,
+    userName: "" ,
+    userId: "",
+    recieverID: "",
+    message: "",
+    timeCreated: "",
+    read: false
+  })
+
+  const suggestedMessages = [
+  "I am interested in your offer, reach me on my WeChat ID....",
+  "How can I pay for the shipping fee?",
+  "Is this offer still available? I am interested."
+  ];
+
+  const navigate = useNavigate();
+
+// Function to handle sending message
+const handleSendMessage = () => {
+  setIsSending(true);
+  // Simulate an API call with a timeout
+  setTimeout(() => {
+    alert("Message sent successfully!");
+    setIsSending(false);
+    setShowModal(false);
+    setMessage(""); // Clear message after sending
+  }, 2000);
+};
+
+const handleSubmit = () => {
+  setIsSending(true);
+
+  // Get user info from localStorage
+  const userName = localStorage.getItem("user");
+  const userId = localStorage.getItem("user");
+
+  console.log(chatData)
+
+  // Step 1: Check if the chat already exists
+  fetch("http://localhost:3001/check-chat", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      userName,
+      recieverName: chatData.recieverName,
+    }),
+  })
+    .then((res) => res.json())
+    .then((result) => {
+      if (result.exists) {
+        // Chat already exists — just navigate
+        setToastMessage("Chat already exists. Redirecting...");
+        navigate("/chat");
+        return Promise.reject("Chat already exists"); // Prevent further execution
+      }
+
+      // Step 2: If chat doesn't exist, create new chat
+      return fetch("http://localhost:3001/create-chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(chatData),
+      });
+    })
+    .then((response) => {
+      if (!response.ok) throw new Error("Failed to create chat");
+      return response.json();
+    })
+    .then((data) => {
+      const chatId = data.insertedId;
+
+      // Build the message
+      const newMessage = {
+        chatId: chatId,
+        recieverName: chatData.recieverName,
+        userName,
+        userId,
+        recieverID: chatData.recieverID,
+        message: chatData.lastMessage,
+        timeCreated: new Date().toISOString(),
+        read: false,
+      };
+
+      // Send message
+      return fetch("http://localhost:3001/send-message", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newMessage),
+      });
+    })
+    .then((res) => {
+      if (!res.ok) throw new Error("Failed to send message");
+      return res.json();
+    })
+    .then(() => {
+      setToastMessage("Chat and message sent successfully!");
+      setShowModal(false);
+      navigate("/chat");
+    })
+    .catch((error) => {
+      if (error !== "Chat already exists") {
+        console.error("Error:", error);
+        setToastMessage("Failed to create chat or send message.");
+      }
+    })
+    .finally(() => {
+      setIsSending(false);
+      setTimeout(() => setToastMessage(null), 3000);
+    });
+};
+
+
+const handleInputChange = (e) => {
+  const { name, value } = e.target;
+  setChatData(prev => ({
+    ...prev,
+    [name]: value,
+  }));
+};
 
   // Function to fetch packages from the server
   const fetchSellPackages = async () => {
@@ -42,10 +198,7 @@ const MarketOffers = () => {
   };
 
   // Fetch packages when the component mounts or when the type changes
-  useEffect(() => {
-    fetchBuyPackages();
-    fetchSellPackages();
-  }, []);
+
 
   // Filter data by search input
   const filterOffers = (offers) =>
@@ -55,19 +208,41 @@ const MarketOffers = () => {
         offer.destination.toLowerCase().includes(search.toLowerCase())
     );
 
-  console.log(buyPackages)
+  // console.log(buyPackages)
 
-  const contactClick = () => {
+  const contactClick = (offer) => {
     if (!isLoggedIn) {
       setModalMessage("Only logged-in users can request contact.");
+      console.log("not logged in")
     } else {
       setModalMessage("Thank you for your interest! We will notify the seller.");
+
     }
+
+    setSelectedOffer(offer._id);
+    setSelectedOfferUser(offer.username);
+
+    setChatData({
+      ...chatData,
+      // lastMessage: message,
+      userId: localStorage.getItem("user"),
+      userName: localStorage.getItem("user"),
+      offerId: offer._id,
+      recieverName: offer.username,
+      offerDetails: offer,
+      lastTimestamp: new Date().toISOString(),
+      timeCreated: new Date().toISOString(),
+      read: false,
+    });
+
+
     setShowModal(true);
+
+    // console.log(selectedOffer)
   };
 
   const renderOfferCard = (offer, type) => (
-    <div className="col-md-3" key={offer.username + offer.datePosted}>
+    <div className="col-md-3 col-sm-6" key={offer._id + offer.datePosted}>
       <div
         className="card shadow-sm mb-3"
         style={{
@@ -96,7 +271,7 @@ const MarketOffers = () => {
             ) : (
               <>
                 <strong>Space Available:</strong> {offer.space} <br />
-                <strong>Price:</strong> ${offer.price} <br />
+                <strong>Price:</strong> ${offer.price} ${offer.denomination} <br />
               </>
             )}
             <strong>Goods Type:</strong> {offer.goodsType} <br />
@@ -109,7 +284,8 @@ const MarketOffers = () => {
           {/* Contact button */}
           <button
             className="btn btn-success d-block mx-auto mb-2"
-            onClick={contactClick}
+            onClick={() => contactClick(offer)}
+            disabled={offer.username === localStorage.getItem('user')}
             style={{
               display: "flex",
               alignItems: "center",
@@ -126,6 +302,13 @@ const MarketOffers = () => {
       </div>
     </div>
   );
+
+    useEffect(() => {
+    fetchBuyPackages();
+    fetchSellPackages();
+    setIsLoggedIn(!!localStorage.getItem("token"));
+    // console.log(localStorage.getItem("token"))
+  }, []);
   
 
 
@@ -139,6 +322,7 @@ const MarketOffers = () => {
           className="form-control"
           placeholder="Search by departure or destination"
           value={search}
+          id="home-search"
           onChange={(e) => setSearch(e.target.value)}
         />
       </div>
@@ -193,34 +377,72 @@ const MarketOffers = () => {
           )}
       </div>
 
-      {showModal && (
-        <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}>
-          <div className="modal-dialog">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Contact Request</h5>
-                <button
-                  type="button"
-                  className="btn-close"
-                  onClick={() => setShowModal(false)}
-                ></button>
-              </div>
-              <div className="modal-body">
-                <p>{modalMessage}</p>
-              </div>
-              <div className="modal-footer">
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => setShowModal(false)}
-                >
-                  Close
-                </button>
+        {showModal && (
+          <div
+            className="modal fade show d-block"
+            tabIndex="-1"
+            style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
+          >
+            <div className="modal-dialog">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title">Contact Request</h5>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => setShowModal(false)}
+                  ></button>
+                </div>
+                <div className="modal-body">
+                  <p>{modalMessage}</p>
+
+                  {isLoggedIn && (
+                    <textarea
+                      className="form-control mb-3"
+                      placeholder="Type your message here..."
+                      rows="3"
+                      value={chatData.lastMessage}
+                      name="lastMessage"
+                      onChange={handleInputChange}
+                    ></textarea>
+                  )}
+                </div>
+                <div className="modal-footer">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => setShowModal(false)}
+                  >
+                    Close
+                  </button>
+
+                  {isLoggedIn && (
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      onClick={handleSubmit}
+                      disabled={isSending || chatData.lastMessage.trim() === ""}
+                    >
+                      {isSending ? (
+                        <>
+                          <span
+                            className="spinner-border spinner-border-sm me-2"
+                            role="status"
+                            aria-hidden="true"
+                          ></span>
+                          Sending...
+                        </>
+                      ) : (
+                        "Send Message"
+                      )}
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+
 
     </div>
 
