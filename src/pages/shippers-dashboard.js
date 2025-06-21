@@ -1,0 +1,518 @@
+import React, { useState, useEffect } from 'react';
+import { Card, Container, Row, Col, Button, Modal, Form, Table,Image} from 'react-bootstrap';
+import Alert from 'react-bootstrap/Alert';
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import axios from "axios"
+
+const ShipperDashboard = () => {
+
+  const [showInfoModal, setShowInfoModal] = useState(false);
+  const [showRatesModal, setShowRatesModal] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [currencyRate, setCurrencyRate] = useState(0);
+  const [loading , setLoading] = useState(false)
+  const [shipper , setShipper] = useState([]);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const navigate = useNavigate();
+  const [userInfo, setUserInfo] = useState({
+    name: "James Banda",
+    phone: "+86 132 4567 8901",
+    email: "james.banda@example.com",
+    city: "Guangzhou",
+    country: "China",
+    avatar: "https://i.pravatar.cc/100?img=3",
+  });
+
+  const [rates, setRates] = useState({
+    general: { sea: { RMB: 12, USD: 1.5 }, air: { RMB: 20, USD: 2.5 }, express: { RMB: 30, USD: 4 } },
+    phones: { sea: { RMB: 15, USD: 2 }, air: { RMB: 25, USD: 3 }, express: { RMB: 40, USD: 5 } },
+    laptops: { sea: { RMB: 20, USD: 3 }, air: { RMB: 35, USD: 4.5 }, express: { RMB: 50, USD: 6 } },
+    electronics: { sea: { RMB: 18, USD: 2.2 }, air: { RMB: 28, USD: 3.2 }, express: { RMB: 45, USD: 5.2 } },
+  });
+
+  const [shipperRates , setShipperRates] = useState({
+    rates: {}
+  })
+
+  const [showLeadTimesModal, setShowLeadTimesModal] = useState(false);
+  const [leadTimes, setLeadTimes] = useState({
+    leadTimes: {sea: '', air: '', express: ''},
+  });
+
+  const [leadTimeInputs, setLeadTimeInputs] = useState({
+    sea: { value: "3", unit: "months" },
+    air: { value: "2", unit: "weeks" },
+    express: { value: "1", unit: "week" },
+  });
+
+  const fetchShipper = async () => {
+    try {
+      const companyName = localStorage.companyName
+
+      setLoading(true);
+      const response = await axios.post('http://localhost:3001/get-shipper', { companyName });
+      const shipperData = response.data;
+  
+      setShipper(shipperData);
+      return shipperData; // 🔁 return the data here
+    } catch (error) {
+      console.error('Error fetching shipper information:', error);
+      throw error; // so it can be caught in fetchAll
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  
+  
+
+  const fetchRates = async (companyId) => {
+    try {
+      const response = await axios.post('http://localhost:3001/get-rates', { companyId });
+      const data = response.data;
+
+      console.log(data)
+      if (data) setShipperRates(data);
+      else console.warn("No rates found.");
+    } catch (error) {
+      console.error("Error fetching rates:", error);
+    }
+  };
+  
+  const fetchLeadTimes = async (companyId) => {
+    try {
+      const response = await axios.post('http://localhost:3001/get-leadTimes', { companyId });
+      const data = response.data;
+
+      if (data) {
+        setLeadTimes(data);
+        console.log(data[0])
+        const parsedInputs = {};
+        Object.keys(data).forEach((mode) => {
+          const [value, unit] = data[mode].split(" ");
+          parsedInputs[mode] = { value, unit };
+        });
+        setLeadTimeInputs(parsedInputs);
+      }
+    } catch (error) {
+      console.error("Error fetching lead times:", error);
+    }
+  };
+
+  const handleSaveLeadTimes = async () => {
+    setIsSaving(true);
+  
+    console.log(leadTimeInputs)
+  
+    // const isUpdate = !!leadTimes[0]._id; // if you have the ID, you're updating
+    const isUpdate = leadTimes.length > 0 && !!leadTimes[0]?._id;
+  
+  
+    const payload = {
+      // _id: leadTimes[0]._id, // set this if updating
+      ...(isUpdate && { _id: leadTimes[0]._id }),
+      companyName: localStorage.companyName || '',
+      companyId: localStorage.companyId || '',
+      lastEdit: new Date().toISOString(),
+      leadTimes: leadTimeInputs,
+    };
+  
+    // const endpoint = leadTimes[0]._id ? '/update-leadTimes' : '/set-leadTimes';
+    const endpoint = isUpdate ? '/update-leadTimes' : '/set-leadTimes';
+
+  
+    try {
+      const res = await axios.post(`http://localhost:3001${endpoint}`, payload);
+      console.log('Lead times saved:', res.data);
+      setLeadTimes(leadTimeInputs);
+      setShowLeadTimesModal(false);
+    } catch (err) {
+      console.error('Error saving lead times:', err);
+      alert("Failed to save lead times. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+  
+  
+  const handleSaveRates = async () => {
+    setIsSaving(true);
+  
+    const isUpdate = !!shipperRates[0]._id; // if you have the ID, you're updating
+
+    console.log(isUpdate)
+    console.log(shipperRates[0]._id)
+
+  
+    const payload = {
+      ...(isUpdate && { _id: shipperRates[0]._id }),
+      companyName: localStorage.companyName || '',
+      companyId: localStorage.companyId || '',
+      lastEdit: new Date().toISOString(),
+      currencyRate: parseFloat(currencyRate),
+      rates,
+    };
+  
+    const endpoint = isUpdate ? '/update-rate' : '/set-rate';
+  
+    try {
+      const res = await axios.post(`http://localhost:3001${endpoint}`, payload);
+      console.log(`${isUpdate ? 'Updated' : 'Saved'}:`, res.data);
+      setShowRatesModal(false);
+    } catch (err) {
+      console.error(`Error ${isUpdate ? 'updating' : 'saving'} rates:`, err);
+      alert(`Failed to ${isUpdate ? 'update' : 'save'} rates. Please try again.`);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  useEffect(() => {
+    const fetchAll = async () => {
+      try {
+        const shipperData = await fetchShipper(); // make fetchShipper return shipperData
+        const companyId = shipperData[0]?.completeUserData?.userID;
+
+        console.log(companyId)
+
+        localStorage.setItem('companyId' , companyId)
+  
+        if (companyId) {
+          await fetchRates(companyId);
+          await fetchLeadTimes(companyId);
+        } else {
+          console.warn("No companyId found in shipper data.");
+        }
+      } catch (error) {
+        console.error("Failed to fetch shipper or related data:", error);
+      }
+
+      console.log(leadTimes)
+    };
+  
+    fetchAll();
+  }, []);
+
+  return (
+    <Container className="mt-4">
+      {/* Greeting */}
+      {shipper.length > 0 && (
+            <>
+                <Row className="align-items-center mb-4">
+                <Col md="auto">
+                    <Image
+                    src={shipper[0].completeUserData.avatar}
+                    roundedCircle
+                    width={70}
+                    height={70}
+                    alt="avatar"
+                    />
+                </Col>
+                <Col>
+                    <h4 className="mb-0">
+                    Welcome, {shipper[0].completeUserData.companyName}!
+                    </h4>
+                    <div className="text-muted">
+                    Manage your shipping profile and rates
+                    </div>
+                </Col>
+                </Row>
+
+                {/* Basic Info Card */}
+                <Card className="mb-4 shadow-sm">
+                <Card.Header className="d-flex justify-content-between align-items-center">
+                    <strong>Basic Information</strong>
+                    <Button size="sm" onClick={() => setShowInfoModal(true)}>Edit Info</Button>
+                </Card.Header>
+                <Card.Body>
+                    <Row>
+                    <Col><strong>Name:</strong> {shipper[0].completeUserData.companyName}</Col>
+                    <Col><strong>Phone:</strong> {shipper[0].completeUserData.phoneNumber}</Col>
+                    </Row>
+                    <Row className="mt-2">
+                    <Col><strong>Email:</strong> {shipper[0].completeUserData.email}</Col>
+                    <Col><strong>HQ:</strong> {shipper[0].completeUserData.hqLocation}</Col>
+                    </Row>
+                    <Row className="mt-2">
+                    <Col><strong>Introduction:</strong> {shipper[0].completeUserData.introduction}</Col>
+                    </Row>
+                </Card.Body>
+                </Card>
+            </>
+            )}
+
+      {/* Shipping Rates Card */}
+      {shipperRates.length > 0 ? (
+      <>
+      <Card className="shadow-sm">
+        <Card.Header className="d-flex justify-content-between align-items-center">
+          <strong>Shipping Rates</strong>
+          <Button size="sm" onClick={() => setShowRatesModal(true)}>Edit Rates</Button>
+        </Card.Header>
+        <Card.Body>
+          <Table bordered responsive>
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Sea (RMB/$USD)</th>
+                <th>Air (RMB/USD)</th>
+                <th>Air Express (RMB/USD)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>General Goods (/kg)</td>
+                <td>{shipperRates[0].rates.general.sea.RMB} / {shipperRates[0].rates.general.sea.USD}</td>
+                <td>{shipperRates[0].rates.general.air.RMB} / {shipperRates[0].rates.general.air.USD}</td>
+                <td>{shipperRates[0].rates.general.express.RMB} / {shipperRates[0].rates.general.express.USD}</td>
+              </tr>
+              <tr>
+                <td>Phones (/pc)</td>
+                <td>{shipperRates[0].rates.phones.sea.RMB} / {shipperRates[0].rates.phones.sea.USD}</td>
+                <td>{shipperRates[0].rates.phones.air.RMB} / {shipperRates[0].rates.phones.air.USD}</td>
+                <td>{shipperRates[0].rates.phones.express.RMB} / {shipperRates[0].rates.phones.express.USD}</td>
+              </tr>
+              <tr>
+                <td>Laptops (/kg)</td>
+                <td>{shipperRates[0].rates.laptops.sea.RMB} / {shipperRates[0].rates.laptops.sea.USD}</td>
+                <td>{shipperRates[0].rates.laptops.air.RMB} / {shipperRates[0].rates.laptops.air.USD}</td>
+                <td>{shipperRates[0].rates.laptops.express.RMB} / {shipperRates[0].rates.laptops.express.USD}</td>
+              </tr>
+              <tr>
+                <td>Other Electronics (/kg)</td>
+                <td>{shipperRates[0].rates.electronics.sea.RMB} / {shipperRates[0].rates.electronics.sea.USD}</td>
+                <td>{shipperRates[0].rates.electronics.air.RMB} / {shipperRates[0].rates.electronics.air.USD}</td>
+                <td>{shipperRates[0].rates.electronics.express.RMB} / {shipperRates[0].rates.electronics.express.USD}</td>
+              </tr>
+            </tbody>
+          </Table>
+        </Card.Body>
+      </Card>
+      </>
+     ) : (
+      <Alert variant="warning" className="d-flex justify-content-between align-items-center">
+        <span>No shipping rates set for your company yet.</span>
+        <Button size="sm" variant="primary" onClick={() => setShowRatesModal(true)}>
+          Set Rates
+        </Button>
+      </Alert>
+    )}
+    
+     {leadTimes.length > 0 ? (
+      <>
+      <Card className="shadow-sm mt-4">
+        <Card.Header className="d-flex justify-content-between align-items-center">
+            <strong>Lead Times</strong>
+            <Button size="sm" onClick={() => setShowLeadTimesModal(true)}>Edit Lead Times</Button>
+        </Card.Header>
+        <Card.Body>
+            <Row>
+            <Col><strong>Sea:</strong> {leadTimes.leadTimes.sea}</Col>
+            <Col><strong>Air:</strong> {leadTimes.leadTimes.air}</Col>
+            <Col><strong>Air Express:</strong> {leadTimes.leadTimes.express}</Col>
+            </Row>
+        </Card.Body>
+    </Card>
+    </>
+    ): (
+    <Alert variant="warning" className="d-flex justify-content-between align-items-center">
+      <span>No lead times set for your company yet.</span>
+      <Button size="sm" variant="primary" onClick={() => setShowLeadTimesModal(true)}>
+        Lead Times
+      </Button>
+    </Alert>
+    )} 
+
+      {/* Edit Info Modal */}
+      <Modal show={showInfoModal} onHide={() => setShowInfoModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Edit Basic Info</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group>
+              <Form.Label>Name</Form.Label>
+              <Form.Control
+                value={userInfo.name}
+                onChange={(e) => setUserInfo({ ...userInfo, name: e.target.value })}
+              />
+            </Form.Group>
+            <Form.Group>
+              <Form.Label>Phone</Form.Label>
+              <Form.Control
+                value={userInfo.phone}
+                onChange={(e) => setUserInfo({ ...userInfo, phone: e.target.value })}
+              />
+            </Form.Group>
+            <Form.Group>
+              <Form.Label>Email</Form.Label>
+              <Form.Control
+                value={userInfo.email}
+                onChange={(e) => setUserInfo({ ...userInfo, email: e.target.value })}
+              />
+            </Form.Group>
+            <Form.Group>
+              <Form.Label>City</Form.Label>
+              <Form.Control
+                value={userInfo.city}
+                onChange={(e) => setUserInfo({ ...userInfo, city: e.target.value })}
+              />
+            </Form.Group>
+            <Form.Group>
+              <Form.Label>Country</Form.Label>
+              <Form.Control
+                value={userInfo.country}
+                onChange={(e) => setUserInfo({ ...userInfo, country: e.target.value })}
+              />
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowInfoModal(false)}>Cancel</Button>
+          <Button variant="primary" onClick={() => setShowInfoModal(false)}>Save</Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Edit Rates Modal (simplified) */}
+      <Modal show={showRatesModal} onHide={() => setShowRatesModal(false)} centered size="lg">
+        <Modal.Header closeButton>
+            <Modal.Title>Edit Shipping Rates</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+
+            <Form.Group className="mb-3">
+            <Form.Label>Currency Rate (RMB to USD)</Form.Label>
+            <Form.Control
+                type="number"
+                step="0.01"
+                placeholder="Enter currency rate"
+                value={currencyRate}
+                onChange={(e) => setCurrencyRate(e.target.value)}
+            />
+            </Form.Group>
+
+            <Form>
+            {["general", "phones", "laptops", "electronics"].map((itemKey) => (
+                <div key={itemKey} className="mb-4">
+                <h5 className="text-capitalize">{itemKey.replace(/([a-z])([A-Z])/g, '$1 $2')}</h5>
+                {["sea", "air", "express"].map((mode) => (
+                    <div key={mode} className="d-flex mb-2 align-items-center">
+                    <strong className="me-3 text-capitalize" style={{ width: "120px" }}>{mode}:</strong>
+                    <Form.Control
+                        type="number"
+                        placeholder="RMB"
+                        value={rates[itemKey][mode].RMB}
+                        onChange={(e) =>
+                        setRates((prev) => ({
+                            ...prev,
+                            [itemKey]: {
+                            ...prev[itemKey],
+                            [mode]: {
+                                ...prev[itemKey][mode],
+                                RMB: e.target.value,
+                            },
+                            },
+                        }))
+                        }
+                        className="me-2"
+                    />
+                    <Form.Control
+                        type="number"
+                        placeholder="USD"
+                        value={rates[itemKey][mode].USD}
+                        onChange={(e) =>
+                        setRates((prev) => ({
+                            ...prev,
+                            [itemKey]: {
+                            ...prev[itemKey],
+                            [mode]: {
+                                ...prev[itemKey][mode],
+                                USD: e.target.value,
+                            },
+                            },
+                        }))
+                        }
+                    />
+                    </div>
+                ))}
+                </div>
+            ))}
+            </Form>
+        </Modal.Body>
+        <Modal.Footer>
+            <Button variant="secondary" onClick={() => setShowRatesModal(false)}>Cancel</Button>
+
+            <Button variant="primary" onClick={handleSaveRates} disabled={isSaving}>
+            {isSaving ? 'Saving...' : 'Save'}
+            </Button>
+
+        </Modal.Footer>
+      </Modal>
+
+      <Modal show={showLeadTimesModal} onHide={() => setShowLeadTimesModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Edit Lead Times</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+           <Form>
+            {["sea", "air", "express"].map((mode) => (
+              <Form.Group key={mode} className="mb-3">
+                <Form.Label className="text-capitalize">{mode} Shipping</Form.Label>
+                <div className="d-flex align-items-center">
+                  <Form.Control
+                    type="number"
+                    min="1"
+                    // value={leadTimeInputs[mode][value]}
+                    value={3}
+                    onChange={(e) =>
+                      setLeadTimeInputs((prev) => ({
+                        ...prev,
+                        [mode]: {
+                          ...prev[mode],
+                          value: e.target.value,
+                        },
+                      }))
+                    }
+                    className="me-2"
+                    style={{ maxWidth: "100px" }}
+                  />
+                  <Form.Select
+                    // value={leadTimeInputs[mode][unit]}
+                    value={3}
+                    onChange={(e) =>
+                      setLeadTimeInputs((prev) => ({
+                        ...prev,
+                        [mode]: {
+                          ...prev[mode],
+                          unit: e.target.value,
+                        },
+                      }))
+                    }
+                    style={{ maxWidth: "150px" }}
+                  >
+                    <option value="days">days</option>
+                    <option value="weeks">weeks</option>
+                    <option value="months">months</option>
+                  </Form.Select>
+                </div>
+              </Form.Group>
+            ))}
+          </Form> 
+
+        </Modal.Body> 
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowLeadTimesModal(false)}>
+            Cancel
+          </Button>
+          <Button variant="primary" onClick={handleSaveLeadTimes} disabled={isSaving}>
+            {isSaving ? "Saving..." : "Save"}
+          </Button>
+        </Modal.Footer>
+      </Modal> 
+
+
+    </Container>
+  );
+};
+
+export default ShipperDashboard;

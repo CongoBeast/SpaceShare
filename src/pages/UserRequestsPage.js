@@ -5,29 +5,39 @@ import { FaCheck, FaUser } from "react-icons/fa";
 const UserRequestsPage = () => {
   const [key, setKey] = useState("pending");
 
-  // Sample data
-  const requests = [
-    {
-      id: 1,
-      requester: "JaneDoe",
-      requesterImage: "https://via.placeholder.com/50",
-      dateRequested: "2025-01-02",
-      offerDetails: "Space Needed: 50 cubic meters | Goods: Furniture",
-      departure: "Chicago",
-      destination: "Houston",
-      status: "pending",
-    },
-    {
-      id: 2,
-      requester: "JohnSmith",
-      requesterImage: "https://via.placeholder.com/50",
-      dateRequested: "2025-01-03",
-      offerDetails: "Space Available: 100 cubic meters | Goods: Electronics",
-      departure: "New York",
-      destination: "Los Angeles",
-      status: "accepted",
-    },
-  ];
+  const [pendingRequests, setPendingRequests] = useState([]);
+  const [acceptedRequests, setAcceptedRequests] = useState([]);
+
+  const fetchAcceptedRequests = async (username, status, setAcceptedRequests) => {
+    try {
+      const response = await axios.get("http://localhost:3001/recieved-requests/by-user", {
+        params: { username, status },
+      });
+      setAcceptedRequests(response.data);
+    } catch (error) {
+      console.error("Error fetching packages by user:", error);
+    }
+  };
+
+  const fetchPendingRequests = async (username, status, setPendingRequests) => {
+    try {
+      const response = await axios.get("http://localhost:3001/recieved-requests/by-user", {
+        params: { username, status },
+      });
+      setPendingRequests(response.data);
+    } catch (error) {
+      console.error("Error fetching packages by user:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchPendingRequests( localStorage.user , "Pending", setPendingRequests);
+    fetchAcceptedRequests(localStorage.user , "Accepted" ,  setAcceptedRequests);
+  }, []);
+
+  const requests = pendingRequests.concat(acceptedRequests)
+
+  console.log(requests)
 
   const handleAccept = (id) => {
     alert(`Request ID ${id} accepted!`);
@@ -45,7 +55,7 @@ const UserRequestsPage = () => {
         className="mb-4 justify-content-center"
       >
         <Tab
-          eventKey="pending"
+          eventKey="Pending"
           title={
             <span>
               <FaUser className="me-2" /> Pending Requests
@@ -53,12 +63,12 @@ const UserRequestsPage = () => {
           }
         >
           <RequestTiles
-            requests={requests.filter((req) => req.status === "pending")}
+            requests={requests.filter((req) => req.status === "Pending")}
             handleAccept={handleAccept}
           />
         </Tab>
         <Tab
-          eventKey="accepted"
+          eventKey="Accepted"
           title={
             <span>
               <FaCheck className="me-2" /> Accepted Requests
@@ -66,7 +76,7 @@ const UserRequestsPage = () => {
           }
         >
           <RequestTiles
-            requests={requests.filter((req) => req.status === "accepted")}
+            requests={requests.filter((req) => req.status === "Accepted")}
           />
         </Tab>
       </Tabs>
@@ -78,7 +88,7 @@ const RequestTiles = ({ requests, handleAccept }) => {
   return (
     <Row xs={1} md={2} lg={3} className="g-4">
       {requests.map((request) => (
-        <Col key={request.id}>
+        <Col key={request._id}>
           <Card
             className="shadow-sm"
             style={{
@@ -110,7 +120,7 @@ const RequestTiles = ({ requests, handleAccept }) => {
                 <Button
                   variant="success"
                   className="w-100 d-flex align-items-center justify-content-center"
-                  onClick={() => handleAccept(request.id)}
+                  onClick={() => handleAccept(request.requester)}
                 >
                   <FaCheck className="me-2" /> Accept Request
                 </Button>

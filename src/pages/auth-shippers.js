@@ -1,36 +1,38 @@
-// export default AuthPage;
+// import default AuthPage;
 import React, { useState } from 'react';
 import { Container, Row, Col, Form, Button, ToggleButtonGroup, ToggleButton, Spinner, Alert } from 'react-bootstrap';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-const AuthPage = () => {
+const AuthShipperPage = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
-    username: '',
+    userID: "",
+    companyName: '',
     password: '',
     email: '',
     confirmPassword: '',
     phoneNumber: { countryCode: '', number: '' },
     weChatId: '',
-    gender: 'male',
     registrationDate: '',
     lastLoggedIn: '',
+    hqCity: '',
+    hqCountry: '',
+    transportModes: [],
     avatar: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
-  const navigate = useNavigate();
   const [avatarFile, setAvatarFile] = useState(null);
+  const navigate = useNavigate();
 
-
-  const [notificationData, setNotification] = useState ({
-    description: '',
-    date: '',
-    read: false,
-    username: ''
-  })
+  const defaultRates = {
+    general: { sea: { RMB: 12, USD: 1.5 }, air: { RMB: 20, USD: 2.5 }, express: { RMB: 30, USD: 4 } },
+    phones: { sea: { RMB: 15, USD: 2 }, air: { RMB: 25, USD: 3 }, express: { RMB: 40, USD: 5 } },
+    laptops: { sea: { RMB: 20, USD: 3 }, air: { RMB: 35, USD: 4.5 }, express: { RMB: 50, USD: 6 } },
+    electronics: { sea: { RMB: 18, USD: 2.2 }, air: { RMB: 28, USD: 3.2 }, express: { RMB: 45, USD: 5.2 } },
+  };
 
   const handleToggle = (value) => {
     setIsLogin(value === 1);
@@ -40,7 +42,9 @@ const AuthPage = () => {
       confirmPassword: '',
       phoneNumber: { countryCode: '', number: '' },
       weChatId: '',
-      gender: 'male',
+      hqCity: '',
+      hqCountry: '',
+      transportModes: [],
     });
     setError('');
     setMessage('');
@@ -53,6 +57,9 @@ const AuthPage = () => {
         ...formData,
         phoneNumber: { ...formData.phoneNumber, [name]: value },
       });
+    } else if (name === 'transportModes') {
+      const options = Array.from(e.target.selectedOptions, (option) => option.value);
+      setFormData({ ...formData, transportModes: options });
     } else {
       setFormData({ ...formData, [name]: value });
     }
@@ -73,83 +80,98 @@ const AuthPage = () => {
     return true;
   };
 
-  // const handleSubmit = (e) => {
-  //   e.preventDefault();
-  
-  //   if (!validateForm()) {
-  //     return;
-  //   }
+  const generateUserID = (companyName) => {
+    const base = companyName.trim().toLowerCase().replace(/\s+/g, '-');
+    const timestamp = new Date().toISOString().replace(/[-:.TZ]/g, '').slice(0, 12);
+    return `${base}-${timestamp}`;
+  };
 
-  //   var notificationString
+  
+
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   if (!validateForm()) return;
   
   //   setLoading(true);
-  //   const endpoint = isLogin ? 'login' : 'register';
-  //   const requestData = {
-  //     ...formData,
-  //     phoneNumber: `${formData.phoneNumber.countryCode}${formData.phoneNumber.number}`,
-  //     registrationDate: !isLogin ? new Date().toISOString() : formData.registrationDate,
-  //     lastLoggedIn: !isLogin ? new Date().toISOString() : new Date().toISOString(),
-  //   };
+  //   const endpoint = isLogin ? 'login-shipper' : 'register-shipper';
   
-  //   if (endpoint == 'login'){
-  //     notificationString = "Your login was successful"
+  //   try {
+  //     let avatarUrl = '';
+  
+  //     // Upload avatar image to Cloudinary if file exists
+  //     if (!isLogin && avatarFile) {
+  //       const formDataImage = new FormData();
+  //       formDataImage.append('image', avatarFile); // "image" matches multer's `upload.single('image')`
+        
+  //       const uploadRes = await axios.post('http://localhost:3001/upload', formDataImage, {
+  //         headers: {
+  //           'Content-Type': 'multipart/form-data',
+  //         },
+  //       });
+        
+  //       avatarUrl = uploadRes.data.url;
+  //     }
+  
+  //     const userID = generateUserID(formData.companyName);
+  //     const hqLocation = `${formData.hqCity}, ${formData.hqCountry}`;
+  
+  //     const requestData = {
+  //       ...formData,
+  //       companyName: formData.companyName,
+  //       userID,
+  //       hqLocation,
+  //       avatar: avatarUrl, // ✅ add uploaded image URL
+  //       phoneNumber: `${formData.phoneNumber.countryCode}${formData.phoneNumber.number}`,
+  //       registrationDate: !isLogin ? new Date().toISOString() : formData.registrationDate,
+  //       lastLoggedIn: new Date().toISOString(),
+  //     };
+  
+  //     console.log(requestData);
+  
+  //     const notificationString = isLogin
+  //       ? 'Your login was successful'
+  //       : 'The account registration was successful';
+  
+  //     const response = await axios.post(`http://localhost:3001/${endpoint}`, requestData);
+  //     setLoading(false);
+  
+  //     if (response.data.token) {
+  //       localStorage.setItem('token', response.data.token);
+  //       localStorage.setItem('companyId', userID);
+  //       localStorage.setItem('companyName', formData.companyName);
+  //       navigate('/shipper-dashboard');
+  
+  //       const notificationData = {
+  //         description: notificationString,
+  //         date: new Date().toISOString(),
+  //         read: false,
+  //         username: formData.companyName,
+  //       };
+  
+  //       axios.post('http://localhost:3001/set-notification', notificationData);
+  //     } else {
+  //       setMessage('Operation successful');
+  //     }
+  //   } catch (error) {
+  //     setLoading(false);
+  //     setError(error.response ? error.response.data.message : 'An error occurred');
   //   }
-  //   else{
-  //     notificationString = "The account registration was successful"
-  //   }
-  
-  //   axios
-  //     .post(`http://localhost:3001/${endpoint}`, requestData)
-  //     .then((response) => {
-  //       setLoading(false);
-  //       if (response.data.token) {
-  //         localStorage.setItem('token', response.data.token);
-  //         localStorage.setItem('user', formData.username);
-  //         navigate('/');
-  
-  //         // Send notification data
-  //         const notificationData = {
-  //           description: notificationString,
-  //           date: new Date().toISOString(),
-  //           read: false,
-  //           username: formData.username,
-  //         };
-  
-  //         axios
-  //           .post('http://localhost:3001/set-notification', notificationData)
-  //           .then(() => {
-  //             console.log('Notification sent successfully');
-  //           })
-  //           .catch((error) => {
-  //             console.error('Error sending notification:', error);
-  //           });
-  //       } else {
-  //         setMessage('Operation successful');
-  //       }
-  //     })
-  //     .catch((error) => {
-  //       setLoading(false);
-  //       setError(error.response ? error.response.data.message : 'An error occurred');
-  //     });
   // };
+ 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
   
     setLoading(true);
-  
-    const endpoint = isLogin ? 'login' : 'register';
-  
-    let avatarUrl = '';
+    const endpoint = isLogin ? 'login-shipper' : 'register-shipper';
   
     try {
-      // ✅ Upload avatar if present and registering
+      let avatarUrl = '';
+  
+      // Upload avatar image to Cloudinary if file exists
       if (!isLogin && avatarFile) {
         const formDataImage = new FormData();
-        formDataImage.append('image', avatarFile); // Must match `upload.single('image')` in backend
+        formDataImage.append('image', avatarFile);
   
         const uploadRes = await axios.post('http://localhost:3001/upload', formDataImage, {
           headers: {
@@ -160,32 +182,56 @@ const AuthPage = () => {
         avatarUrl = uploadRes.data.url;
       }
   
+      const userID = generateUserID(formData.companyName);
+      const hqLocation = `${formData.hqCity}, ${formData.hqCountry}`;
+  
       const requestData = {
         ...formData,
-        avatar: avatarUrl, // ✅ Add uploaded image URL
+        companyName: formData.companyName,
+        userID,
+        hqLocation,
+        avatar: avatarUrl,
         phoneNumber: `${formData.phoneNumber.countryCode}${formData.phoneNumber.number}`,
         registrationDate: !isLogin ? new Date().toISOString() : formData.registrationDate,
         lastLoggedIn: new Date().toISOString(),
       };
+  
+      console.log(requestData);
   
       const notificationString = isLogin
         ? 'Your login was successful'
         : 'The account registration was successful';
   
       const response = await axios.post(`http://localhost:3001/${endpoint}`, requestData);
-  
       setLoading(false);
   
       if (response.data.token) {
         localStorage.setItem('token', response.data.token);
-        localStorage.setItem('user', formData.username);
-        navigate('/');
+        localStorage.setItem('companyId', userID);
+        localStorage.setItem('companyName', formData.companyName);
+  
+        // ✅ Initialize rates for the new shipper
+        const ratePayload = {
+          userID: userID,
+          companyName: formData.companyName,
+          rates: defaultRates,
+          createdAt: new Date().toISOString(),
+        };
+  
+        // try {
+        //   await axios.post('http://localhost:3001/set-rate', ratePayload);
+        //   console.log('Rates initialized successfully');
+        // } catch (rateError) {
+        //   console.error('Failed to initialize rates:', rateError);
+        // }
+  
+        navigate('/shipper-dashboard');
   
         const notificationData = {
           description: notificationString,
           date: new Date().toISOString(),
           read: false,
-          username: formData.username,
+          username: formData.companyName,
         };
   
         axios.post('http://localhost:3001/set-notification', notificationData);
@@ -197,22 +243,19 @@ const AuthPage = () => {
       setError(error.response ? error.response.data.message : 'An error occurred');
     }
   };
-  
 
   return (
     <Container className="mt-5">
       <Row className="justify-content-md-center">
         <Col md={6}>
           <ToggleButtonGroup type="radio" name="authType" defaultValue={1} className="mb-3" onChange={handleToggle}>
-            <ToggleButton id="tbg-radio-1" value={1} variant="outline-primary">
-              Sign In
-            </ToggleButton>
-            <ToggleButton id="tbg-radio-2" value={2} variant="outline-success">
-              Sign Up
-            </ToggleButton>
+            <ToggleButton id="tbg-radio-1" value={1} variant="outline-primary">Sign In</ToggleButton>
+            <ToggleButton id="tbg-radio-2" value={2} variant="outline-success">Sign Up</ToggleButton>
           </ToggleButtonGroup>
+
           {error && <Alert variant="danger">{error}</Alert>}
           {message && <Alert variant="success">{message}</Alert>}
+
           <Form onSubmit={handleSubmit}>
             {!isLogin && (
               <Form.Group controlId="formEmail">
@@ -227,13 +270,13 @@ const AuthPage = () => {
               </Form.Group>
             )}
 
-            <Form.Group controlId="formUsername">
-              <Form.Label>Username</Form.Label>
+            <Form.Group controlId="formCompanyName">
+              <Form.Label>Company Name</Form.Label>
               <Form.Control
                 type="text"
-                placeholder="Enter username"
-                name="username"
-                value={formData.username}
+                placeholder="Enter company name"
+                name="companyName"
+                value={formData.companyName}
                 onChange={handleChange}
               />
             </Form.Group>
@@ -262,7 +305,7 @@ const AuthPage = () => {
                   />
                 </Form.Group>
 
-                <Form.Group controlId="formPhoneNumber">
+                <Form.Group>
                   <Form.Label>Phone Number</Form.Label>
                   <Row>
                     <Col md={4}>
@@ -297,16 +340,47 @@ const AuthPage = () => {
                   />
                 </Form.Group>
 
-                <Form.Group controlId="formGender">
-                  <Form.Label>Gender</Form.Label>
-                  <Form.Control as="select" name="gender" value={formData.gender} onChange={handleChange}>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                  </Form.Control>
+                <Form.Group>
+                  <Form.Label>HQ City</Form.Label>
+                  <Form.Control
+                    type="text"
+                    placeholder="e.g., Harare"
+                    name="hqCity"
+                    value={formData.hqCity}
+                    onChange={handleChange}
+                  />
                 </Form.Group>
 
+                <Form.Group>
+                  <Form.Label>HQ Country</Form.Label>
+                  <Form.Control
+                    type="text"
+                    placeholder="e.g., Zimbabwe"
+                    name="hqCountry"
+                    value={formData.hqCountry}
+                    onChange={handleChange}
+                  />
+                </Form.Group>
+
+                <Form.Group>
+                  <Form.Label>Transport Modes</Form.Label>
+                  <Form.Control
+                    as="select"
+                    name="transportModes"
+                    multiple
+                    value={formData.transportModes}
+                    onChange={handleChange}
+                  >
+                    <option value="Sea">Sea</option>
+                    <option value="Air">Air</option>
+                    <option value="Air Express">Air Express</option>
+                  </Form.Control>
+                  <Form.Text className="text-muted">Hold Ctrl (or Cmd on Mac) to select multiple.</Form.Text>
+                </Form.Group>
+
+
                 <Form.Group controlId="formAvatar">
-                  <Form.Label>Upload Avatar</Form.Label>
+                  <Form.Label>Upload Company Logo</Form.Label>
                   <Form.Control
                     type="file"
                     accept="image/*"
@@ -314,18 +388,13 @@ const AuthPage = () => {
                   />
                 </Form.Group>
 
-
               </>
             )}
 
             <Button variant="primary" type="submit" className="mt-3" disabled={loading}>
               {loading ? (
-                <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
-              ) : isLogin ? (
-                'Sign In'
-              ) : (
-                'Sign Up'
-              )}
+                <Spinner as="span" animation="border" size="sm" />
+              ) : isLogin ? 'Sign In' : 'Sign Up'}
             </Button>
           </Form>
         </Col>
@@ -334,4 +403,4 @@ const AuthPage = () => {
   );
 };
 
-export default AuthPage;
+export default AuthShipperPage;

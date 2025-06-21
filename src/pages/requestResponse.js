@@ -1,23 +1,60 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Tabs, Tab, Card, Button } from "react-bootstrap";
+import axios from "axios";
 
-const RequestResponses = ({ requests }) => {
-  const [activeTab, setActiveTab] = useState("pending");
+const RequestResponses = () => {
+  const [activeTab, setActiveTab] = useState("Pending");
+
+    const [pendingRequests, setPendingRequests] = useState([]);
+    const [acceptedRequests, setAcceptedRequests] = useState([]);
+
+    const fetchAcceptedRequests = async (username, status, setAcceptedRequests) => {
+      try {
+        const response = await axios.get("http://localhost:3001/sent-requests/by-user", {
+          params: { username, status },
+        });
+        setAcceptedRequests(response.data);
+      } catch (error) {
+        console.error("Error fetching packages by user:", error);
+      }
+    };
+
+    const fetchPendingRequests = async (username, status, setPendingRequests) => {
+      try {
+        const response = await axios.get("http://localhost:3001/sent-requests/by-user", {
+          params: { username, status },
+        });
+        setPendingRequests(response.data);
+      } catch (error) {
+        console.error("Error fetching packages by user:", error);
+      }
+    };
+  
+    useEffect(() => {
+      fetchPendingRequests( localStorage.user , "Pending", setPendingRequests);
+      fetchAcceptedRequests(localStorage.user , "Accepted" ,  setAcceptedRequests);
+    }, []);
+
+    const requests = pendingRequests.concat(acceptedRequests)
+
 
   const renderCard = (request, isAccepted) => (
     <Card className="mb-4 shadow-sm" key={request.id} style={{ borderRadius: "10px" }}>
       <Card.Body>
         <div className="d-flex justify-content-between align-items-center">
           <div>
-            <h5 className="card-title">{request.offerUsername}</h5>
+            <h5 className="card-title">{request.userId}</h5>
             <p className="mb-1">
-              <strong>Goods Type:</strong> {request.goodsType}
+              <strong>Goods Type:</strong> {request.type}
             </p>
             <p className="mb-1">
               <strong>Departure:</strong> {request.departure}
             </p>
             <p className="mb-1">
               <strong>Destination:</strong> {request.destination}
+            </p>
+            <p className="mb-1">
+              <strong>Space:</strong> {request.space}
             </p>
             {isAccepted && (
               <>
@@ -30,7 +67,7 @@ const RequestResponses = ({ requests }) => {
               </>
             )}
             <p className="mb-0 text-muted">
-              <strong>Requested On:</strong> {new Date(request.requestDate).toLocaleDateString()}
+              <strong>Requested On:</strong> {new Date(request.timestamp).toLocaleDateString()}
             </p>
           </div>
           <img
@@ -62,17 +99,17 @@ const RequestResponses = ({ requests }) => {
         justify
         style={{ fontSize: "1.1rem" }}
       >
-        <Tab eventKey="pending" title="Pending Requests">
+        <Tab eventKey="Pending" title="Pending Requests">
           <div>
             {requests
-              .filter((req) => !req.isAccepted)
+              .filter((req) => req.status === "Pending")
               .map((request) => renderCard(request, false))}
           </div>
         </Tab>
-        <Tab eventKey="accepted" title="Accepted Requests">
+        <Tab eventKey="Accepted" title="Accepted Requests">
           <div>
             {requests
-              .filter((req) => req.isAccepted)
+              .filter((req) => req.status === "Accepted")
               .map((request) => renderCard(request, true))}
           </div>
         </Tab>

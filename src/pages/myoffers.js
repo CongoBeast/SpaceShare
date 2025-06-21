@@ -1,149 +1,8 @@
-// import React, { useState , useEffect} from "react";
-// import { Card, Button, Row, Col } from "react-bootstrap";
-// import { FaEdit, FaTrash } from "react-icons/fa";
-// import { Link, useLocation, useNavigate } from "react-router-dom";
-// import axios from "axios"
-
-
-// const MyOffersPage = () => {
-
-//   const navigate = useNavigate();
-
-
-//   const [buyPackages, setBuyPackages] = useState([]); // State to store packages
-//   const [sellPackages, setSellPackages] = useState([]); // State to store packages
-
-
-//   // Function to fetch packages from the server
-//   const fetchSellPackages = async () => {
-//     const type  = "sell"
-//     try {
-//       const response = await axios.get('http://localhost:3001/packages', {
-//         params: { type }, // Pass the type as a query parameter
-//       });
-//       setSellPackages(response.data); // Update state with fetched packages
-//     } catch (error) {
-//       console.error('Error fetching packages:', error);
-//     }
-//   };
-
-//   const fetchBuyPackages = async () => {
-//     const type = "buy"
-//     try {
-//       const response = await axios.get('http://localhost:3001/packages', {
-//         params: { type }, // Pass the type as a query parameter
-//       });
-//       setBuyPackages(response.data); // Update state with fetched packages
-//     } catch (error) {
-//       console.error('Error fetching packages:', error);
-//     }
-//   };
-
-//   // Fetch packages when the component mounts or when the type changes
-//   useEffect(() => {
-//     fetchBuyPackages();
-//     fetchSellPackages();
-//   }, []);
-
-//   var offers = []
-
-//   offers = buyPackages.concat(sellPackages)
-
-//   // Handle edit action
-//   // const handleEdit = (id) => {
-//   //   alert(`Edit offer with ID: ${id}`);
-//   //   // Add your logic here for editing (e.g., show a modal or navigate to an edit page)
-//   // };
-
-//   // // Handle delete action
-//   // const handleDelete = (id) => {
-//   //   if (window.confirm("Are you sure you want to delete this offer?")) {
-//   //     // setOffers((prevOffers) => prevOffers.filter((offer) => offer.id !== id));
-//   //   }
-//   // };
-//   const handleEdit = async (id, updatedOffer) => {
-//     try {
-//         const response = await axios.put(`http://localhost:3001/edit-offer/${id}`, updatedOffer);
-//         alert("Offer updated successfully!");
-//         fetchBuyPackages();
-//         fetchSellPackages();
-//     } catch (error) {
-//         console.error("Error updating offer:", error);
-//     }
-// };
-
-
-// const handleDelete = async (id) => {
-//   if (window.confirm("Are you sure you want to delete this offer?")) {
-//       try {
-//           await axios.delete(`http://localhost:3001/delete-offer/${id}`);
-//           alert("Offer deleted successfully!");
-//           fetchBuyPackages();
-//           fetchSellPackages();
-//       } catch (error) {
-//           console.error("Error deleting offer:", error);
-//       }
-//   }
-// };
-
-
-
-//   return (
-//     <div className="container mt-4">
-//       <h2 className="text-center mb-4">My Posted Offers</h2>
-//       <Row xs={1} md={2} lg={3} className="g-4">
-//         {offers.map((offer) => (
-//           <Col key={offer.id}>
-//             <Card className="shadow-sm" style={{ borderRadius: "10px" }}>
-//               <Card.Body>
-//                 <Card.Title className="mb-3">
-//                   {offer.username} <span className="text-muted fs-6">({offer.datePosted})</span>
-//                 </Card.Title>
-//                 <Card.Text>
-//                   <strong>Goods Type:</strong> {offer.goodsType} <br />
-//                   <strong>Departure:</strong> {offer.departure} <br />
-//                   <strong>Destination:</strong> {offer.destination} <br />
-//                   <strong>Departure Date:</strong> {offer.dateDeparture} <br />
-//                   <strong>Expiration Date:</strong> {offer.dateExpiration} <br />
-//                   {offer.spaceNeeded ? (
-//                     <strong>Space Needed:</strong>
-//                   ) : (
-//                     <>
-//                       <strong>Space Available:</strong> {offer.spaceAvailable} <br />
-//                       <strong>Price:</strong> ${offer.price} <br />
-//                     </>
-//                   )}
-//                 </Card.Text>
-//                 <div className="d-flex justify-content-between">
-//                   <Button
-//                     variant="outline-primary"
-//                     className="d-flex align-items-center"
-//                     onClick={() => handleEdit(offer.id)}
-//                   >
-//                     <FaEdit className="me-2" /> Edit
-//                   </Button>
-//                   <Button
-//                     variant="outline-danger"
-//                     className="d-flex align-items-center"
-//                     onClick={() => handleDelete(offer.id)}
-//                   >
-//                     <FaTrash className="me-2" /> Delete
-//                   </Button>
-//                 </div>
-//               </Card.Body>
-//             </Card>
-//           </Col>
-//         ))}
-//       </Row>
-//     </div>
-//   );
-// };
-
-// export default MyOffersPage;
 import React, { useState, useEffect } from "react";
-import { Card, Button, Row, Col, Modal, Form } from "react-bootstrap";
+import { Card, Button, Row, Col, Modal, Form, Breadcrumb, Badge } from "react-bootstrap";
 import { FaEdit, FaTrash } from "react-icons/fa";
 import axios from "axios";
+import { useParams, Link } from 'react-router-dom';
 
 const MyOffersPage = () => {
   const [buyPackages, setBuyPackages] = useState([]);
@@ -163,18 +22,28 @@ const MyOffersPage = () => {
 
   // Fetch Buy and Sell Offers
   useEffect(() => {
-    fetchPackages("buy", setBuyPackages);
-    fetchPackages("sell", setSellPackages);
+    fetchPackages( localStorage.user , "buy", setBuyPackages);
+    fetchPackages(localStorage.user , "sell" ,  setSellPackages);
   }, []);
 
-  const fetchPackages = async (type, setPackages) => {
+  // const fetchPackages = async (type, setPackages) => {
+  //   try {
+  //     const response = await axios.get("http://localhost:3001/packages", {
+  //       params: { type },
+  //     });
+  //     setPackages(response.data);
+  //   } catch (error) {
+  //     console.error("Error fetching packages:", error);
+  //   }
+  // };
+  const fetchPackages = async (username, type, setPackages) => {
     try {
-      const response = await axios.get("http://localhost:3001/packages", {
-        params: { type },
+      const response = await axios.get("http://localhost:3001/packages/by-user", {
+        params: { username, type },
       });
       setPackages(response.data);
     } catch (error) {
-      console.error("Error fetching packages:", error);
+      console.error("Error fetching packages by user:", error);
     }
   };
 
@@ -201,8 +70,8 @@ const MyOffersPage = () => {
       alert("Offer updated successfully!");
       console.log(offerData)
       setShowModal(false);
-      fetchPackages("buy", setBuyPackages);
-      fetchPackages("sell", setSellPackages);
+      fetchPackages(localStorage.user, "buy" , setBuyPackages);
+      fetchPackages(localStorage.user, "sell",  setSellPackages);
     } catch (error) {
       console.error("Error updating offer:", error);
     }
@@ -215,8 +84,8 @@ const MyOffersPage = () => {
       try {
         await axios.delete(`http://localhost:3001/delete-offer/${id}`);
         alert("Offer deleted successfully!");
-        fetchPackages("buy", setBuyPackages);
-        fetchPackages("sell", setSellPackages);
+        fetchPackages(localStorage.user, "buy", setBuyPackages);
+        fetchPackages(localStorage.user, "sell", setSellPackages);
       } catch (error) {
         console.error("Error deleting offer:", error);
       }
@@ -226,13 +95,24 @@ const MyOffersPage = () => {
   return (
     <div className="container mt-4">
       <h2 className="text-center mb-4">My Posted Offers</h2>
+
+
+      <Breadcrumb className='p-3 rounded'>
+            <Breadcrumb.Item linkAs={Link} linkProps={{ to: '/profile' }}>
+            <Badge bg="primary">My Profile</Badge>
+            </Breadcrumb.Item>
+            <Breadcrumb.Item active>
+            <Badge bg="dark">My Posted Offers</Badge>
+            </Breadcrumb.Item>
+        </Breadcrumb>
+
       <Row xs={1} md={2} lg={3} className="g-4">
         {offers.map((offer) => (
-          <Col key={offer.id}>
-            <Card className="shadow-sm" style={{ borderRadius: "10px" }}>
+          <Col key={offer._id}>
+            <Card className="shadow-sm" style={{ borderRadius: "10px" , backgroundColor: offer.type === "buyers" ? "#e8f4fc" : "#fde8e8", }}>
               <Card.Body>
                 <Card.Title>
-                  {offer.username} <span className="text-muted fs-6">({offer.datePosted})</span>
+                  {offer.username} <span className="text-muted fs-6">({offer.type})</span>
                 </Card.Title>
                 <Card.Text>
                   <strong>Goods Type:</strong> {offer.goodsType} <br />

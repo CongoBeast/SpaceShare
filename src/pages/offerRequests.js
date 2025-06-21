@@ -1,38 +1,70 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Tab, Tabs, Card, Button, Row, Col } from "react-bootstrap";
 import { FaCheck, FaUser } from "react-icons/fa";
+import axios from "axios"
 
 const OfferRequestsPage = () => {
   const [key, setKey] = useState("pending");
 
-  // Sample data
-  const requests = [
-    {
-      id: 1,
-      requester: "JaneDoe",
-      requesterImage: "https://via.placeholder.com/50",
-      dateRequested: "2025-01-02",
-      offerDetails: "Space Needed: 50 cubic meters | Goods: Furniture",
-      departure: "Chicago",
-      destination: "Houston",
-      status: "pending",
-    },
-    {
-      id: 2,
-      requester: "JohnSmith",
-      requesterImage: "https://via.placeholder.com/50",
-      dateRequested: "2025-01-03",
-      offerDetails: "Space Available: 100 cubic meters | Goods: Electronics",
-      departure: "New York",
-      destination: "Los Angeles",
-      status: "accepted",
-    },
-  ];
+  const [pendingRequests, setPendingRequests] = useState([]);
+  const [acceptedRequests, setAcceptedRequests] = useState([]);
 
-  const handleAccept = (id) => {
-    alert(`Request ID ${id} accepted!`);
-    // Update the request status in your actual implementation
+    // Submit the edited offer
+    const handleAccept = async (request) => {
+      console.log(request._id)
+      try {
+        await axios.put(`http://localhost:3001/edit-request/${request._id}`, request);
+        alert("Request updated successfully!");
+        console.log(request)
+        // setShowModal(false);
+        fetchPendingRequests( localStorage.user , "Pending", setPendingRequests);
+        fetchAcceptedRequests(localStorage.user , "Accepted" ,  setAcceptedRequests);
+      } catch (error) {
+        console.error("Error updating offer:", error);
+      }
+    };
+
+  const fetchAcceptedRequests = async (username, status, setAcceptedRequests) => {
+    try {
+      const response = await axios.get("http://localhost:3001/recieved-requests/by-user", {
+        params: { username, status },
+      });
+      setAcceptedRequests(response.data);
+    } catch (error) {
+      console.error("Error fetching packages by user:", error);
+    }
   };
+
+  const fetchPendingRequests = async (username, status, setPendingRequests) => {
+    try {
+      const response = await axios.get("http://localhost:3001/recieved-requests/by-user", {
+        params: { username, status },
+      });
+      setPendingRequests(response.data);
+    } catch (error) {
+      console.error("Error fetching packages by user:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchPendingRequests( localStorage.user , "Pending", setPendingRequests);
+    fetchAcceptedRequests(localStorage.user , "Accepted" ,  setAcceptedRequests);
+  }, []);
+
+  // const requests = pendingRequests.concat(acceptedRequests)
+ var requests = [ ...pendingRequests , ...acceptedRequests]
+
+
+  var requests = Array.from(
+    new Map(requests.map(item => [item.id, item])).values()
+  );
+
+  // console.log(uniqueRequests)
+
+  // const handleAccept = (request) => {
+  //   alert(`Request ID ${request._id} accepted!`);
+  //   // Update the request status in your actual implementation
+  // };
 
   return (
     <div className="container mt-4">
@@ -45,7 +77,7 @@ const OfferRequestsPage = () => {
         className="mb-4 justify-content-center"
       >
         <Tab
-          eventKey="pending"
+          eventKey="Pending"
           title={
             <span>
               <FaUser className="me-2" /> Pending Requests
@@ -53,12 +85,12 @@ const OfferRequestsPage = () => {
           }
         >
           <RequestTiles
-            requests={requests.filter((req) => req.status === "pending")}
+            requests={requests.filter((req) => req.status === "Pending")}
             handleAccept={handleAccept}
           />
         </Tab>
         <Tab
-          eventKey="accepted"
+          eventKey="Accepted"
           title={
             <span>
               <FaCheck className="me-2" /> Accepted Requests
@@ -66,7 +98,7 @@ const OfferRequestsPage = () => {
           }
         >
           <RequestTiles
-            requests={requests.filter((req) => req.status === "accepted")}
+            requests={requests.filter((req) => req.status === "Accepted")}
           />
         </Tab>
       </Tabs>
@@ -78,7 +110,7 @@ const RequestTiles = ({ requests, handleAccept }) => {
   return (
     <Row xs={1} md={2} lg={3} className="g-4">
       {requests.map((request) => (
-        <Col key={request.id}>
+        <Col key={request._id}>
           <Card
             className="shadow-sm"
             style={{
@@ -89,9 +121,9 @@ const RequestTiles = ({ requests, handleAccept }) => {
             <Card.Body>
               <div className="d-flex align-items-center justify-content-between mb-3">
                 <div>
-                  <Card.Title className="mb-0">{request.requester}</Card.Title>
+                  <Card.Title className="mb-0">{request.reqquestee}</Card.Title>
                   <small className="text-muted">
-                    Requested on: {request.dateRequested}
+                    Requested on: {request.timestamp}
                   </small>
                 </div>
                 <img
@@ -102,7 +134,7 @@ const RequestTiles = ({ requests, handleAccept }) => {
                 />
               </div>
               <Card.Text>
-                <strong>Offer Details:</strong> {request.offerDetails} <br />
+                <strong>Offer Details:</strong> {request.message} <br />
                 <strong>Departure:</strong> {request.departure} <br />
                 <strong>Destination:</strong> {request.destination} <br />
               </Card.Text>
@@ -110,7 +142,7 @@ const RequestTiles = ({ requests, handleAccept }) => {
                 <Button
                   variant="success"
                   className="w-100 d-flex align-items-center justify-content-center"
-                  onClick={() => handleAccept(request.id)}
+                  onClick={() => handleAccept(request)}
                 >
                   <FaCheck className="me-2" /> Accept Request
                 </Button>
