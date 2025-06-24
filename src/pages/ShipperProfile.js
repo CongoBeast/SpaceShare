@@ -1,5 +1,5 @@
 import React, { useState , useEffect} from 'react';
-import { Container, Tab, Tabs, Table, Form, Button, Card , Image, Breadcrumb, Badge, Col, Row} from 'react-bootstrap';
+import { Container, Tab, Tabs, Table, Form, Button, Card , Image, Breadcrumb, Badge, Col, Row, Modal} from 'react-bootstrap';
 import { useNavigate, useParams , Link} from "react-router-dom";
 import axios from "axios"
 
@@ -7,8 +7,13 @@ import axios from "axios"
 const ShipperProfile = () => {
   const [key, setKey] = useState('introduction');
   const [reviews, setReviews] = useState([]);
-  const [newReview, setNewReview] = useState('');
   const [loading , setLoading] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+
+  const handleClose = () => setShowModal(false);
+  const handleShow = () => setShowModal(true);
+
+  const [companyReviewId, setCompanyReviewId] = useState("")
 
   const [companyNameState , setCompanyName] = useState('');
 
@@ -25,21 +30,72 @@ const ShipperProfile = () => {
     });
 
 
-  const [shipperRates , setShipperRates] = useState({
-    rates: {}
-  })
+  const [shipperRates , setShipperRates] = useState([]);
+  const [companyReviews, setCompanyReviews] = useState([])
 
   const navigate = useNavigate();
+
+  const [reviewTitle, setReviewTitle] = useState('');
+  const [reviewRating, setReviewRating] = useState(5); // Default to 5
+  const [newReview, setNewReview] = useState('');
+
   
 
-  const handleReviewSubmit = (e) => {
-    e.preventDefault();
-    if (newReview.trim()) {
-      setReviews([...reviews, newReview]);
-      setNewReview('');
-    }
+  // const handleReviewSubmit = (e) => {
+  //   e.preventDefault();
+  //   if (newReview.trim()) {
+  //     setReviews([...reviews, newReview]);
+  //     setNewReview('');
+  //   }
+  // };
+
+const handleReviewSubmit = async (e) => {
+  e.preventDefault();
+
+  const user = localStorage.getItem("user");
+  // const author = user ? JSON.parse(user) : "Anonymous"; // Adjust if user is just a string
+  const author = user // Adjust if user is just a string
+
+
+  const reviewData = {
+    title: reviewTitle,
+    rating: reviewRating,
+    content: newReview,
+    author: author,
+    companyID: shipper[0].completeUserData.userID,
+    postedAt: new Date().toISOString(),
   };
 
+  try {
+    const response = await axios.post("http://localhost:3001/set-reviews", reviewData);
+    console.log("Review submitted:", response.data);
+
+    // Optional: clear form
+    setReviewTitle("");
+    setReviewRating(5);
+    setNewReview("");
+
+    // Optional: toast success
+  } catch (error) {
+    console.error("Failed to submit review:", error);
+    // Optional: toast failure
+  }
+};
+
+  const fetchReviews = async (companyId) => {
+    try {
+
+      console.log(companyId)
+
+      const response = await axios.post('http://localhost:3001/get-reviews', { companyId });
+      const data = response.data;
+
+      if (data) setCompanyReviews(data);
+      else console.warn("No reviews found.");
+    } catch (error) {
+      console.error("Error fetching reviews:", error);
+    }
+  };
 //   const fetchShipper = async () => {
 
 //     try {
@@ -68,21 +124,36 @@ const ShipperProfile = () => {
 
         // 2. Extract and store companyId
         const companyId = shipperData[0].completeUserData.userID;
+
+        setCompanyReviewId(companyReviewId)
     
         // 3. Fetch shipping rates
         const ratesResponse = await axios.post('http://localhost:3001/get-rates', { companyId});
         setShipperRates(ratesResponse.data);
+
     
         // 4. Fetch lead times
         const leadTimesResponse = await axios.post('http://localhost:3001/get-leadTimes', { companyId});
 
-        console.log(ratesResponse)
+        console.log("this is the companyId we are passing: " , companyId)
+
+        const companyReviewResponse = await axios.post('http://localhost:3001/get-reviews', { companyId });
+
+        
+
+        setCompanyReviews(companyReviewResponse.data)
+
+        
+
+
     
         const leadTimesData = leadTimesResponse.data;
         if (leadTimesData) {
             setLeadTimes(leadTimesData);
     
         }
+
+        console.log(leadTimesData)
 
         
         } catch (error) {
@@ -99,11 +170,32 @@ const ShipperProfile = () => {
   useEffect(() => {
 
     fetchShipper();
-  }, [companyName]);
 
-//   console.log(companyName)
+    fetchReviews(companyReviewId)
 
-    console.log(leadTimes)
+
+  }, [companyReviewId]);
+
+  console.log(companyReviews)
+
+  const formatReviewDate= (dateString) => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffInHours = Math.floor((now - date) / (1000 * 60 * 60));
+  
+  if (diffInHours < 24) {
+    return `Today ${date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+  } else if (diffInHours < 48) {
+    return `Yesterday ${date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+  } else {
+    return date.toLocaleDateString([], {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+}
 
   return (
     <Container className="my-4">
@@ -221,37 +313,120 @@ const ShipperProfile = () => {
         <Tab eventKey="reviews" title="Reviews">
           
         {token && (
-          <Form onSubmit={handleReviewSubmit} className="mb-3 mt-3">
-            <Form.Group controlId="reviewTextarea">
-              <Form.Label>Leave a Review</Form.Label>
-              <Form.Control
-                as="textarea"
-                rows={3}
-                value={newReview}
-                onChange={(e) => setNewReview(e.target.value)}
-              />
-            </Form.Group>
-            <Button variant="primary" type="submit" className="mt-2">Submit</Button>
-          </Form>
+          <Button variant="primary" onClick={handleShow} className="mb-3">
+            Leave a Review
+          </Button>
         )}
 
 
           <div>
             <h5>All Reviews</h5>
-            {reviews.length === 0 ? (
+            {companyReviews.length === 0 ? (
               <p>No reviews yet.</p>
             ) : (
-              reviews.map((review, index) => (
-                <Card key={index} className="mb-2">
-                  <Card.Body>
-                    <Card.Text>{review}</Card.Text>
-                  </Card.Body>
-                </Card>
+              
+              companyReviews.map((review, index) => (
+              <Card key={index} className="mb-2">
+                <Card.Body className="d-flex flex-column">
+                  <div className="d-flex align-items-center mb-2">
+                    {/* Small circular author image */}
+                    <div 
+                      className="rounded-circle bg-secondary me-2" 
+                      style={{
+                        width: '40px', 
+                        height: '40px',
+                        backgroundImage: `url(${review.authorImage || 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOEAAADhCAMAAAAJbSJIAAAAPFBMVEXk5ueutLepsLPo6uursbXJzc/p6+zj5ea2u76orrKvtbi0ubzZ3N3O0dPAxcfg4uPMz9HU19i8wcPDx8qKXtGiAAAFTElEQVR4nO2d3XqzIAyAhUD916L3f6+f1m7tVvtNINFg8x5tZ32fQAIoMcsEQRAEQRAEQRAEQRAEQRAEQRAEQRAEQRAEQRAEQTghAJD1jWtnXJPP/54IgNzZQulSmxvTH6oYXX4WS+ivhTbqBa1r26cvCdCu6i0YXbdZ0o4A1rzV+5IcE3YE+z58T45lqo7g1Aa/JY5tgoqQF3qb382x7lNzBLcxft+O17QUYfQI4IIeklKsPSN4i6LKj/7Zm8n99RbHJpEw9gEBXNBpKIYLJqKYRwjOikf//r+J8ZsVuacbqCMNleI9TqGLGqMzhnVdBOdd6F/RlrFijiCoVMk320CBIahUxTWI0KKEcJqKbMdpdJb5QvdHq6wCI5qhKlgGMS/RBHkubWDAE+QZxB4xhCyDiDkLZxgGEVdQldzSKbTIhmZkFkSEPcVvmBn2SMuZB9od7fQDsMiDdKJjFUSCQarM5WirZ3C2TT/htYnyPcPfgrFHWz0BI74gr6J/IZiGUxAZGQLqmvQLTrtE/Go4YxhVRIpEw+sww1IIcqr5NKmUUzLF3d4/qPkYIp2T/obPuemlojFUR4t9Q2Vojhb7BmgElWHzLPH8hucfpefPNFTVgs9h1AdU/Pin96vwWbWdf+X9Absn3OdO34aMdsDnP8WgKYisTqI6CkNGqZQo1XA6Ef6AU32SJzOcBukHPF07/xNSgmHKa5BOhtezv6mA/rYJpwXNAnbRZ1XuF3BzDcO3vpA3+ny2909gbqE4hhD3LIPhLLyBNhPZvbZ3B+3tPYa18A7auSlXQayKwTPNLKDcuOB0xPYKDPFTkWsevQPRZ1J8Hji9I1KQ34r7hZhrwNwOZ97QxNx0drwn4QI0wQk1DcEsfKCWKdxVvxPSNUIp/knmAXT+nT+Ko3+0H96rcNb3m1fx7MBTJdeBJ7uFcWsc0wvgAsC4pROW0l2inbAmIBv/7GZmuhQH6API2rr8T0e6yuZJ+80A9LZeG62T3tik31XwxtwZcizKuTHkMjB1WdZde4Kmic/A5ZI3rr1ae21d08PlVHYfAaxw9G9CYRbJ+8ZdbTcMRV1XM3VdF0M32vtoTdZ0+u29s0OttJ5bz64UwinjaFMVY9vkqc3KKSxN21Xl+0L4Q3Vuv1tYl0pqnX6ms4XetFz7gdZVAgUEoJntfOUe4ZwsHd9FzqQ3Vv6xe41l0XJcqcKl6TZvlv7ClAW3BsqQW4X7ypApB8dmTgK4IX5wvqIVj33HtD2qSG4BqznxdIefL27Y4sahi0MdIdvUsDva8agGGbCtITmCY31MHD2O0uIdh/0rJDQ1VX5Zdxz3rR2QDbv6qXl9vudzqQtGm1Jv9LDXOsfvvB7VcZ8PDKD0mQ1VHPYQ9O+Yj4hR1IUD8rBnn3ho2m8oQMxbCFiKlL2ioSW5heeJqegED52CzxCtcGD3Kv8Wms9EYLyUhwaFIhSMBClevWEmiK/Iaogu4H7sg6ppQhQG8RUqivuTGOAJOg6FfgW0q0M0PQMRMEgXaeNf3SYDZ8PIMI0+wHgr/MgN7wYwpiLjCCqM6ydUDZLQiB6nDdNC8SDyig3jPPpFXGcC9O8BUBDVmgBY59E7Md/35Loe/UVEECEJwYggJjELZ4J71SaQSBeC02n4Da29CayJNA28SAhd2CQyC1Xw6pSmGSINQVuMhAZp4DClan9MgmkDDNmezqwS8sgtlXK/EPBhoaSmYVC/F7IO1jQEdHOlabpKh3+jzLQSTUiq4X2I+Ip/zU8rlaqAvkS21ElR+gqu3zbjjL+hIAiCIAiCIAiCIAiCsCf/AKrfVhSbvA+DAAAAAElFTkSuQmCC'})`,
+                        backgroundSize: 'cover'
+                      }}
+                    />
+                    
+                    <div className="flex-grow-1">
+                      <div className="d-flex justify-content-between align-items-center">
+                        <Card.Title className="mb-0 fw-bold fs-5">{review.title}</Card.Title>
+                        <div className="d-flex">
+                          {[...Array(5)].map((_, i) => (
+                            <span key={i} style={{ color: i < review.rating ? '#ffc107' : '#e4e5e9' }}>
+                              ★
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      <Card.Text className="fs-6">{review.content}</Card.Text>
+
+                    </div>
+                  </div>
+                      
+                      <div className="d-flex align-items-center">
+                        <small className="text-muted me-2">{review.author}</small>
+                        <small className="text-muted">
+                          {formatReviewDate(review.postedAt)}
+                        </small>
+                      </div>
+                  
+                </Card.Body>
+              </Card>
               ))
             )}
           </div>
         </Tab>
       </Tabs>
+
+      <Modal show={showModal} onHide={handleClose}>
+        <Modal.Header closeButton>
+          <Modal.Title>Write a Review</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form onSubmit={handleReviewSubmit}>
+            {/* Review Title */}
+            <Form.Group controlId="reviewTitle" className="mb-3">
+              <Form.Label>Review Title</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Enter a title for your review"
+                value={reviewTitle}
+                onChange={(e) => setReviewTitle(e.target.value)}
+                required
+              />
+            </Form.Group>
+
+            {/* Rating */}
+            <Form.Group controlId="reviewRating" className="mb-3">
+              <Form.Label>Rating</Form.Label>
+              <div className="d-flex align-items-center">
+                <span className="me-2">{reviewRating} ★</span>
+                <Form.Range
+                  min="1"
+                  max="5"
+                  value={reviewRating}
+                  onChange={(e) => setReviewRating(parseInt(e.target.value))}
+                />
+              </div>
+            </Form.Group>
+
+            {/* Review Textarea */}
+            <Form.Group controlId="reviewTextarea" className="mb-3">
+              <Form.Label>Your Review</Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={4}
+                value={newReview}
+                onChange={(e) => setNewReview(e.target.value)}
+                required
+              />
+            </Form.Group>
+
+            <div className="d-flex justify-content-end">
+              <Button variant="secondary" onClick={handleClose} className="me-2">
+                Cancel
+              </Button>
+              <Button variant="primary" type="submit">
+                Submit Review
+              </Button>
+            </div>
+          </Form>
+        </Modal.Body>
+      </Modal>
 
        </>
     )}
