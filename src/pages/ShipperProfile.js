@@ -232,7 +232,7 @@ const handleReviewSubmit = async (e) => {
                 />
                 <Card.Body>
                     <Card.Text>
-                    OceanLink Logistics is a global shipping company offering comprehensive ocean, air, and express freight solutions with a strong focus on timely deliveries and customer satisfaction.
+                    {shipper[0].completeUserData.introduction}
                     </Card.Text>
                 </Card.Body>
             </Card>

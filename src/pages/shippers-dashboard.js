@@ -3,6 +3,7 @@ import { Card, Container, Row, Col, Button, Modal, Form, Table,Image} from 'reac
 import Alert from 'react-bootstrap/Alert';
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import axios from "axios"
+import isEqual from 'lodash.isequal';
 
 const ShipperDashboard = () => {
 
@@ -10,7 +11,7 @@ const ShipperDashboard = () => {
   const [showRatesModal, setShowRatesModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [currencyRate, setCurrencyRate] = useState(0);
-  const [loading , setLoading] = useState(false)
+  const [loading , setLoading] = useState(true)
   const [shipper , setShipper] = useState([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const navigate = useNavigate();
@@ -35,15 +36,19 @@ const ShipperDashboard = () => {
   })
 
   const [showLeadTimesModal, setShowLeadTimesModal] = useState(false);
-  const [leadTimes, setLeadTimes] = useState({
-    leadTimes: {sea: '', air: '', express: ''},
-  });
+  const [leadTimes, setLeadTimes] = useState([]);
 
   const [leadTimeInputs, setLeadTimeInputs] = useState({
     sea: { value: "3", unit: "months" },
     air: { value: "2", unit: "weeks" },
     express: { value: "1", unit: "week" },
   });
+
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [africanCities, setAfricanCities] = useState([]);
 
   const fetchShipper = async () => {
     try {
@@ -52,7 +57,9 @@ const ShipperDashboard = () => {
       setLoading(true);
       const response = await axios.post('http://localhost:3001/get-shipper', { companyName });
       const shipperData = response.data;
-  
+      
+      console.log(shipperData)
+
       setShipper(shipperData);
       return shipperData; // 🔁 return the data here
     } catch (error) {
@@ -63,42 +70,6 @@ const ShipperDashboard = () => {
     }
   };
 
-  
-  
-
-  const fetchRates = async (companyId) => {
-    try {
-      const response = await axios.post('http://localhost:3001/get-rates', { companyId });
-      const data = response.data;
-
-      console.log(data)
-      if (data) setShipperRates(data);
-      else console.warn("No rates found.");
-    } catch (error) {
-      console.error("Error fetching rates:", error);
-    }
-  };
-  
-  const fetchLeadTimes = async (companyId) => {
-    try {
-      const response = await axios.post('http://localhost:3001/get-leadTimes', { companyId });
-      const data = response.data;
-
-      if (data) {
-        setLeadTimes(data);
-        console.log(data[0])
-        const parsedInputs = {};
-        Object.keys(data).forEach((mode) => {
-          const [value, unit] = data[mode].split(" ");
-          parsedInputs[mode] = { value, unit };
-        });
-        setLeadTimeInputs(parsedInputs);
-      }
-    } catch (error) {
-      console.error("Error fetching lead times:", error);
-    }
-  };
-
   const handleSaveLeadTimes = async () => {
     setIsSaving(true);
   
@@ -106,7 +77,6 @@ const ShipperDashboard = () => {
   
     // const isUpdate = !!leadTimes[0]._id; // if you have the ID, you're updating
     const isUpdate = leadTimes.length > 0 && !!leadTimes[0]?._id;
-  
   
     const payload = {
       // _id: leadTimes[0]._id, // set this if updating
@@ -167,15 +137,46 @@ const ShipperDashboard = () => {
     }
   };
 
-  useEffect(() => {
-    const fetchAll = async () => {
+  const fetchRates = async (companyId) => {
+    try {
+      const response = await axios.post('http://localhost:3001/get-rates', { companyId });
+      const data = response.data;
+
+      if (data) setShipperRates(data);
+      else console.warn("No rates found.");
+    } catch (error) {
+      console.error("Error fetching rates:", error);
+    }
+  };
+
+    const fetchLeadTimes = async (companyId) => {
+      try {
+        const response = await axios.post('http://localhost:3001/get-leadTimes', { companyId });
+        const data = response.data;
+
+        if (data && !isEqual(leadTimes, data)) {
+          setLeadTimes(data);
+
+        const parsedInputs = {};
+        Object.keys(data).forEach((mode) => {
+          const [value, unit] = data[mode].split(" ");
+          parsedInputs[mode] = { value, unit };
+        });
+        setLeadTimeInputs(parsedInputs);
+        }
+      } catch (error) {
+        console.error("Error fetching lead times:", error);
+      }
+    };
+
+  const fetchAll = async () => {
       try {
         const shipperData = await fetchShipper(); // make fetchShipper return shipperData
         const companyId = shipperData[0]?.completeUserData?.userID;
 
-        console.log(companyId)
-
         localStorage.setItem('companyId' , companyId)
+
+        
   
         if (companyId) {
           await fetchRates(companyId);
@@ -187,24 +188,34 @@ const ShipperDashboard = () => {
         console.error("Failed to fetch shipper or related data:", error);
       }
 
-      console.log(leadTimes)
     };
-  
+
+  useEffect(() => {
     fetchAll();
   }, []);
+
+
+
+    const handleShipperProfile = (companyName) => {
+    // console.log("navigate button clicked")
+    navigate(`/shipper-profile/${companyName}`)
+  }
+
+  console.log(loading)
 
   return (
     <Container className="mt-4">
       {/* Greeting */}
-      {shipper.length > 0 && (
+      
+      {!loading && shipper && shipper[0] && shipper[0].completeUserData && (
             <>
                 <Row className="align-items-center mb-4">
                 <Col md="auto">
                     <Image
                     src={shipper[0].completeUserData.avatar}
                     roundedCircle
-                    width={70}
-                    height={70}
+                    width={200}
+                    height={200}
                     alt="avatar"
                     />
                 </Col>
@@ -218,7 +229,7 @@ const ShipperDashboard = () => {
                 </Col>
                 </Row>
 
-                {/* Basic Info Card */}
+                
                 <Card className="mb-4 shadow-sm">
                 <Card.Header className="d-flex justify-content-between align-items-center">
                     <strong>Basic Information</strong>
@@ -240,9 +251,33 @@ const ShipperDashboard = () => {
                 </Card>
             </>
             )}
+ 
+      {/* {shipper[0].completeUserData.introduction ? ( */}
+      {!loading && shipper[0].completeUserData.introduction ? (
+            <>    
+                <Card className="mb-4 shadow-sm">
+                <Card.Header className="d-flex justify-content-between align-items-center">
+                    <strong>Basic Introduction</strong>
+                    <Button size="sm" onClick={() => setShowInfoModal(true)}>Edit Intro</Button>
+                </Card.Header>
+                <Card.Body>
+                    <Row className="mt-2">
+                    <Col><strong>Introduction:</strong> {shipper[0].completeUserData.introduction}</Col>
+                    </Row>
+                </Card.Body>
+                </Card>
+            </>
+            ) : (
+      <Alert variant="warning" className="d-flex justify-content-between align-items-center">
+        <span>No company introduction set yet.</span>
+        <Button size="sm" variant="primary" onClick={() => setShowRatesModal(true)}>
+          Set Rates
+        </Button>
+      </Alert>
+    )}
 
       {/* Shipping Rates Card */}
-      {shipperRates.length > 0 ? (
+      {!loading  && shipperRates.length > 0 ? (
       <>
       <Card className="shadow-sm">
         <Card.Header className="d-flex justify-content-between align-items-center">
@@ -298,7 +333,7 @@ const ShipperDashboard = () => {
       </Alert>
     )}
     
-     {leadTimes.length > 0 ? (
+     {!loading && leadTimes.length > 0 ? (
       <>
       <Card className="shadow-sm mt-4">
         <Card.Header className="d-flex justify-content-between align-items-center">
@@ -307,9 +342,9 @@ const ShipperDashboard = () => {
         </Card.Header>
         <Card.Body>
             <Row>
-            <Col><strong>Sea:</strong> {leadTimes.leadTimes.sea}</Col>
-            <Col><strong>Air:</strong> {leadTimes.leadTimes.air}</Col>
-            <Col><strong>Air Express:</strong> {leadTimes.leadTimes.express}</Col>
+            <Col><strong>Sea:</strong> {leadTimes[0].leadTimes.sea.value} {leadTimes[0].leadTimes.sea.unit}</Col>
+            <Col><strong>Air:</strong> {leadTimes[0].leadTimes.air.value} {leadTimes[0].leadTimes.air.unit}</Col>
+            <Col><strong>Air Express:</strong> {leadTimes[0].leadTimes.express.value} {leadTimes[0].leadTimes.express.unit}</Col>
             </Row>
         </Card.Body>
     </Card>
@@ -323,7 +358,14 @@ const ShipperDashboard = () => {
     </Alert>
     )} 
 
+    {/* {!loading && (
+    <Button size="lg" variant='primary' onClick={handleShipperProfile(shipper[0].completeUserData.companyName)}>
+      View Company Profile
+    </Button>
+    )} */}
+
       {/* Edit Info Modal */}
+      {!loading && (
       <Modal show={showInfoModal} onHide={() => setShowInfoModal(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>Edit Basic Info</Modal.Title>
@@ -333,36 +375,46 @@ const ShipperDashboard = () => {
             <Form.Group>
               <Form.Label>Name</Form.Label>
               <Form.Control
-                value={userInfo.name}
+                value={shipper[0].completeUserData.companyName}
                 onChange={(e) => setUserInfo({ ...userInfo, name: e.target.value })}
               />
             </Form.Group>
             <Form.Group>
               <Form.Label>Phone</Form.Label>
               <Form.Control
-                value={userInfo.phone}
+                value={shipper[0].completeUserData.phoneNumber}
                 onChange={(e) => setUserInfo({ ...userInfo, phone: e.target.value })}
               />
             </Form.Group>
             <Form.Group>
               <Form.Label>Email</Form.Label>
               <Form.Control
-                value={userInfo.email}
+                value={shipper[0].completeUserData.email}
                 onChange={(e) => setUserInfo({ ...userInfo, email: e.target.value })}
               />
             </Form.Group>
             <Form.Group>
               <Form.Label>City</Form.Label>
               <Form.Control
-                value={userInfo.city}
+                value={shipper[0].completeUserData.hqCity}
                 onChange={(e) => setUserInfo({ ...userInfo, city: e.target.value })}
               />
             </Form.Group>
             <Form.Group>
               <Form.Label>Country</Form.Label>
               <Form.Control
-                value={userInfo.country}
+                value={shipper[0].completeUserData.hqCountry}
                 onChange={(e) => setUserInfo({ ...userInfo, country: e.target.value })}
+              />
+            </Form.Group>
+
+            <Form.Group>
+              <Form.Label>Company Introduction</Form.Label>
+              <Form.Control
+                as="textarea"  // This changes it to a textarea
+                rows={3}      // You can adjust the number of rows as needed
+                value={shipper[0].completeUserData.introduction || ''}  // Make sure to use the correct property name
+                onChange={(e) => setUserInfo({ ...userInfo, introduction: e.target.value })}
               />
             </Form.Group>
           </Form>
@@ -372,6 +424,7 @@ const ShipperDashboard = () => {
           <Button variant="primary" onClick={() => setShowInfoModal(false)}>Save</Button>
         </Modal.Footer>
       </Modal>
+      )}
 
       {/* Edit Rates Modal (simplified) */}
       <Modal show={showRatesModal} onHide={() => setShowRatesModal(false)} centered size="lg">

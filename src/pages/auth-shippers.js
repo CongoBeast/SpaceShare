@@ -19,7 +19,8 @@ const AuthShipperPage = () => {
     hqCity: '',
     hqCountry: '',
     transportModes: [],
-    avatar: ''
+    avatar: '',
+    introduction: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
