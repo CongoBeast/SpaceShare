@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { FaHome , FaTruck } from "react-icons/fa";
 import { BsFillFileBarGraphFill } from "react-icons/bs";
 import { IoIosInformationCircle, IoIosNotifications } from "react-icons/io";
+import { MdManageAccounts } from "react-icons/md";
 import { BiLogInCircle } from "react-icons/bi";
 import { RiLogoutCircleRLine } from "react-icons/ri";
 import { CgProfile } from "react-icons/cg"; 
@@ -260,6 +261,18 @@ function Sidebar() {
 
             {localStorage.getItem("companyId") && (
               <>
+
+              <Button
+                onClick={() => handleNavClick('/manage-shipments')}
+                variant="outline-light"
+                className="text-left d-flex align-items-center"
+                style={{ marginBottom: "1rem" }}
+              >
+                <MdManageAccounts />
+                <span style={{ marginLeft: "1rem" }}>Manage Shipments</span>
+              </Button>
+              
+
               <Button
                 variant={isLinkActive("/chat") ? "primary" : "outline-light"}
                 className="text-left d-flex align-items-center"
