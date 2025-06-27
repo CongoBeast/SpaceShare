@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Container, Row, Col, Button, Modal, Form, Table,Image} from 'react-bootstrap';
+import { Card, Container, Row, Col, Button, Modal, Form, Table,Image, Badge} from 'react-bootstrap';
 import Alert from 'react-bootstrap/Alert';
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import axios from "axios"
 import isEqual from 'lodash.isequal';
+import CitySelector from "../components/citySelector.js";
 
 const ShipperDashboard = () => {
 
@@ -45,10 +46,21 @@ const ShipperDashboard = () => {
   });
 
 
-  const [searchTerm, setSearchTerm] = useState('');
-  const [searchResults, setSearchResults] = useState([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [africanCities, setAfricanCities] = useState([]);
+  const [deliveryCities, setDeliveryCities] = useState([]);
+  const [showCitiesModal, setShowCitiesModal] = useState(false);
+
+  const [showIntroductionModal, setShowIntroductionModal] = useState(false);
+
+  const [showProfilePicModal, setShowProfilePicModal] = useState(false);
+  const [previewImage, setPreviewImage] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
+
+  const [newAvatar , setNewAvatar] = useState("")
+
+
+  const [introductionText, setIntroductionText] = useState(
+    shipper[0]?.completeUserData?.introduction || ""
+  );
 
   const fetchShipper = async () => {
     try {
@@ -61,6 +73,9 @@ const ShipperDashboard = () => {
       console.log(shipperData)
 
       setShipper(shipperData);
+
+      setDeliveryCities(shipperData[0].deliveryCities)
+
       return shipperData; // 🔁 return the data here
     } catch (error) {
       console.error('Error fetching shipper information:', error);
@@ -73,7 +88,7 @@ const ShipperDashboard = () => {
   const handleSaveLeadTimes = async () => {
     setIsSaving(true);
   
-    console.log(leadTimeInputs)
+    console.log("This is the lead time input" , leadTimeInputs)
   
     // const isUpdate = !!leadTimes[0]._id; // if you have the ID, you're updating
     const isUpdate = leadTimes.length > 0 && !!leadTimes[0]?._id;
@@ -136,6 +151,38 @@ const ShipperDashboard = () => {
       setIsSaving(false);
     }
   };
+
+  const saveSelectedCities = async (savedCities) => {
+    const isUpdate = !!shipper[0].deliveryCities;
+
+    const payload = {
+      filter: {
+        _id: shipper[0]._id  // For MongoDB Data API
+      },
+      update: {
+          deliveryCities: savedCities
+      }
+    };
+
+    try {
+      const res = await axios.post(`http://localhost:3001/update-shipper`, payload);
+      setIsSaving(true);
+      console.log("Updated the shipper", res.data);
+      setShowCitiesModal(false);
+    } catch (err) {
+      console.error("Error updating shipper: ", err);
+      alert("Failed to update");
+    } finally {
+
+      setShipper(prev => {
+      const updated = [...prev];
+      updated[0].deliveryCities = savedCities;
+      return updated;
+    });
+      setIsSaving(false);
+    }
+    
+  }
 
   const fetchRates = async (companyId) => {
     try {
@@ -201,7 +248,93 @@ const ShipperDashboard = () => {
     navigate(`/shipper-profile/${companyName}`)
   }
 
-  console.log(loading)
+  const handleSaveIntroduction = async () => {
+  setIsSaving(true);
+  
+  try {
+
+    const payload = {
+      filter: {
+        _id: shipper[0]._id  // For MongoDB Data API
+      },
+      update: {
+          introduction: introductionText
+      }
+    };
+
+    const res = await axios.post('http://localhost:3001/update-shipper', payload);
+    console.log("Introduction updated:", res.data);
+    
+    // Update local state
+    setShipper(prev => {
+      const updated = [...prev];
+      updated[0].completeUserData.introduction = introductionText;
+      return updated;
+    });
+    
+    setShowCitiesModal(false);
+  } catch (err) {
+    console.error("Error updating introduction:", err);
+    alert("Failed to update introduction. Please try again.");
+  } finally {
+    setIsSaving(false);
+    setShowIntroductionModal(false)
+  }
+};
+
+
+  // Handler for image selection
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewImage(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Handler for submitting the new profile picture
+  const handleProfilePicSubmit = async () => {
+    if (!selectedFile) return;
+
+    let avatarUrl = '';
+    
+    try {
+      // Here you would typically upload the image to your server
+      // For example:
+      // const formData = new FormData();
+      // formData.append('profilePicture', selectedFile);
+      // await axios.put('/api/update-profile-picture', formData);
+
+       const formDataImage = new FormData();
+       formDataImage.append('image', selectedFile);
+        
+       const uploadRes = await axios.post('http://localhost:3001/upload', formDataImage, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+              },
+       });
+        
+      avatarUrl = uploadRes.data.url;
+      
+      // After successful upload:
+      // 1. Update your state or refetch user data
+      // 2. Close the modal and reset preview
+      setShowProfilePicModal(false);
+      setPreviewImage(null);
+      setSelectedFile(null);
+      
+      // Show success message
+      alert('Profile picture updated successfully!');
+    } catch (error) {
+      console.error('Error updating profile picture:', error);
+      alert('Failed to update profile picture');
+    }
+  };
+
 
   return (
     <Container className="mt-4">
@@ -221,11 +354,20 @@ const ShipperDashboard = () => {
                 </Col>
                 <Col>
                     <h4 className="mb-0">
-                    Welcome, {shipper[0].completeUserData.companyName}!
+                      Welcome, {shipper[0].completeUserData.companyName}!
                     </h4>
                     <div className="text-muted">
-                    Manage your shipping profile and rates
+                      Manage your shipping profile and rates
                     </div>
+
+                    <Button 
+                      variant="outline-secondary" 
+                      onClick={() => setShowProfilePicModal(true)}
+                      className="mt-2"
+                    >
+                      Change Profile Picture
+                    </Button>
+
                 </Col>
                 </Row>
 
@@ -270,11 +412,38 @@ const ShipperDashboard = () => {
             ) : (
       <Alert variant="warning" className="d-flex justify-content-between align-items-center">
         <span>No company introduction set yet.</span>
-        <Button size="sm" variant="primary" onClick={() => setShowRatesModal(true)}>
-          Set Rates
+        <Button size="sm" variant="primary" onClick={() => setShowIntroductionModal(true)}>
+          Set Introduction
         </Button>
       </Alert>
     )}
+
+    {!loading && deliveryCities.length > 0 ? (
+        <Card className="mb-4 shadow-sm">
+          <Card.Header className="d-flex justify-content-between align-items-center">
+            <strong>African Cities We Deliver To</strong>
+            <Button size="sm" onClick={() => setShowCitiesModal(true)}>
+              Edit Cities
+            </Button>
+          </Card.Header>
+          <Card.Body>
+            <div className="d-flex flex-wrap gap-2">
+              {deliveryCities.map(city => (
+                <Badge key={city} bg="primary" className="p-2">
+                  {city}
+                </Badge>
+              ))}
+            </div>
+          </Card.Body>
+        </Card>
+      ) : (
+        <Alert variant="warning" className="d-flex justify-content-between align-items-center">
+          <span>No delivery cities set yet.</span>
+          <Button size="sm" variant="primary" onClick={() => setShowCitiesModal(true)}>
+            Set Delivery Cities
+          </Button>
+        </Alert>
+      )}
 
       {/* Shipping Rates Card */}
       {!loading  && shipperRates.length > 0 ? (
@@ -562,6 +731,106 @@ const ShipperDashboard = () => {
           </Button>
         </Modal.Footer>
       </Modal> 
+
+      <Modal show={showIntroductionModal} onHide={() => setShowIntroductionModal(false)} size="lg">
+        <Modal.Header closeButton>
+          <Modal.Title>Edit Company Introduction</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form.Group controlId="companyIntroduction">
+            <Form.Label>Company Introduction</Form.Label>
+            <Form.Control
+              as="textarea"
+              rows={6}
+              value={introductionText}
+              onChange={(e) => setIntroductionText(e.target.value)}
+              placeholder="Tell us about your company, services, and specialties..."
+            />
+            <Form.Text className="text-muted">
+              This will be displayed on your public profile (500 characters max)
+            </Form.Text>
+          </Form.Group>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button 
+            variant="secondary" 
+            onClick={() => setShowIntroductionModal(false)}
+            disabled={isSaving}
+          >
+            Cancel
+          </Button>
+          <Button 
+            variant="primary" 
+            onClick={handleSaveIntroduction}
+            disabled={isSaving || !introductionText.trim()}
+          >
+            {isSaving ? (
+              <>
+                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                Saving...
+              </>
+            ) : (
+              "Save Introduction"
+            )}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+
+      {/* Profile Picture Modal */}
+      <Modal show={showProfilePicModal} onHide={() => setShowProfilePicModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Change Profile Picture</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <div className="text-center">
+            {/* Current Profile Picture Preview */}
+            {previewImage ? (
+              <img 
+                src={previewImage} 
+                alt="Preview" 
+                className="rounded-circle mb-3"
+                style={{ width: '150px', height: '150px', objectFit: 'cover' }}
+              />
+            ) : (
+              <img 
+                src={shipper[0]?.completeUserData?.avatar || '/default-profile.png'} 
+                alt="Current Profile" 
+                className="rounded-circle mb-3"
+                style={{ width: '150px', height: '150px', objectFit: 'cover' }}
+              />
+            )}
+            
+            {/* File Upload Input */}
+            <Form.Group controlId="formFile" className="mb-3">
+              <Form.Label>Upload new profile picture</Form.Label>
+              <Form.Control 
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+              />
+              <Form.Text className="text-muted">
+                Recommended size: 300x300 pixels
+              </Form.Text>
+            </Form.Group>
+          </div>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => {
+            setPreviewImage(null);
+            setShowProfilePicModal(false);
+          }}>
+            Cancel
+          </Button>
+          <Button 
+            variant="primary" 
+            onClick={handleProfilePicSubmit}
+            disabled={!previewImage}
+          >
+            Save Changes
+          </Button>
+        </Modal.Footer>
+      </Modal>
 
 
     </Container>
