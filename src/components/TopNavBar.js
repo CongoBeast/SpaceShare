@@ -17,10 +17,12 @@ import { GiCoalWagon } from "react-icons/gi";
 import { BiSupport } from "react-icons/bi";
 import { SiMicrosoftexcel } from "react-icons/si";
 import { RiAlarmWarningFill } from "react-icons/ri";
-import { FaHome } from "react-icons/fa";
+import { FaHome , FaTruck} from "react-icons/fa";
 import { BsFillFileBarGraphFill } from "react-icons/bs";
 import { IoIosInformationCircle } from "react-icons/io";
 import { FaNewspaper } from "react-icons/fa6";
+import { BiLogInCircle } from "react-icons/bi";
+
 
 
 function TopNavBar() {
@@ -50,78 +52,109 @@ function TopNavBar() {
   };
 
   return (
-    <Navbar collapseOnSelect expand="md" className="bg-body-tertiary d-lg-none mb-3 mx p-1">
+    // <Navbar collapseOnSelect expand="md" className="bg-body-tertiary d-lg-none mb-3 mx p-1">
+    <Navbar 
+      collapseOnSelect 
+      expand="md" 
+      style={{ backgroundColor: '#3a0ca3' }} 
+      className="mb-3 mx p-1 navbar-dark d-lg-none"
+      onToggle={() => setIsOpen(!isOpen)}
+      expanded={isOpen}
+    >
       <Container>
-        {/* <Navbar.Brand href="#home">React-Bootstrap</Navbar.Brand> */}
-        <Navbar.Brand as={Link} to="/">
-        <img src="https://github.com/CongoBeast/SpaceShare/blob/main/public/Meli-removebg-preview.png?raw=true" 
-        alt="Imat Tech Logo"
-          style={{ maxHeight: "50px", maxWidth: "50px" }}
-          className="d-flex align-items-center"
-        />
-      </Navbar.Brand>
+        <Navbar.Brand as={Link} to="/" className="text-white">
+          <img 
+            src="https://github.com/CongoBeast/SpaceShare/blob/main/public/Meli-removebg-preview.png?raw=true" 
+            alt="Imat Tech Logo"
+            style={{ maxHeight: "50px", maxWidth: "50px" }}
+            className="d-flex align-items-center"
+          />
+        </Navbar.Brand>
 
-        <Navbar.Toggle aria-controls="responsive-navbar-nav" />
-        <Navbar.Collapse id="responsive-navbar-nav ">
-    
-          <Nav className='ml-auto' style={{textAlign: "right"}}>
-
-
-          <Nav.Link    as={Link}
+        <Navbar.Toggle aria-controls="responsive-navbar-nav" className="border-0" />
+        <Navbar.Collapse id="responsive-navbar-nav">
+          <Nav className="ml-auto" style={{ textAlign: "right" }}>
+            <Nav.Link 
+              as={Link}
               to="/"
-              variant={isLinkActive("/") ? "primary" : "outline-light"}
-              className="text-left d-flex align-items-center"
-              style={{ marginBottom: "1rem" }}>
-        
+              className={`text-left d-flex align-items-center text-white ${isLinkActive("/") ? "active" : ""}`}
+              style={{ marginBottom: "1rem" }}
+              onClick={() => setIsOpen(false)}
+            >
               <FaHome />
               <span style={{ marginLeft: "1rem" }}>Home</span>
-          </Nav.Link>
+            </Nav.Link>
 
-          <Nav.Link as={Link}
-            to="/profile"
-            variant={isLinkActive("/profile") ? "primary" : "outline-light"}
-            className="text-left d-flex align-items-center"
-            style={{ marginBottom: "1rem" }}>
-            <FaNewspaper />
-            <span style={{ marginLeft: "1rem" }}>Profile</span>
-          </Nav.Link>
-
-
-          <Nav.Link
-            as={Link}
-            to="/about"
-            variant={isLinkActive("/about") ? "primary" : "outline-light"}
-            className="text-left d-flex align-items-center"
-            style={{ marginBottom: "1rem" }}
-          >
-            <IoIosInformationCircle />
-            <span style={{ marginLeft: "1rem" }}>About Us</span>
-          </Nav.Link>
-
-          {isLoggedIn && (
-            <>
+            {!isLoggedIn && (
               <Nav.Link
                 as={Link}
-                to="/notifications"
-                variant={isLinkActive("/notifications") ? "primary" : "outline-light"}
-                className="text-left d-flex align-items-center"
+                to="/auth"
+                className={`text-left d-flex align-items-center text-white ${isLinkActive("/auth") ? "active" : ""}`}
                 style={{ marginBottom: "1rem" }}
+                onClick={() => setIsOpen(false)}
               >
-                <IoIosInformationCircle />
-                <span style={{ marginLeft: "1rem" }}>Notifications</span>
+                <BiLogInCircle />
+                <span style={{ marginLeft: "1rem" }}>Client Login</span>
               </Nav.Link>
-              <Nav.Link
-                onClick={handleLogout}
-                variant="outline-light"
-                className="text-left d-flex align-items-center"
-                style={{ marginBottom: "1rem" }}
-              >
-                <span style={{ marginLeft: "1rem" }}>Logout</span>
-              </Nav.Link>
-            </>
-          )}
+            )}
 
+            <Nav.Link 
+              as={Link}
+              to="/profile"
+              className={`text-left d-flex align-items-center text-white ${isLinkActive("/profile") ? "active" : ""}`}
+              style={{ marginBottom: "1rem" }}
+              onClick={() => setIsOpen(false)}
+            >
+              <FaNewspaper />
+              <span style={{ marginLeft: "1rem" }}>Profile</span>
+            </Nav.Link>
 
+            <Nav.Link 
+              as={Link}
+              to="/shippers"
+              className={`text-left d-flex align-items-center text-white ${isLinkActive("/shippers") ? "active" : ""}`}
+              style={{ marginBottom: "1rem" }}
+              onClick={() => setIsOpen(false)}
+            >
+              <FaTruck />
+              <span style={{ marginLeft: "1rem" }}>Pro Shippers</span>
+            </Nav.Link>
+
+            <Nav.Link
+              as={Link}
+              to="/about"
+              className={`text-left d-flex align-items-center text-white ${isLinkActive("/about") ? "active" : ""}`}
+              style={{ marginBottom: "1rem" }}
+              onClick={() => setIsOpen(false)}
+            >
+              <IoIosInformationCircle />
+              <span style={{ marginLeft: "1rem" }}>About Us</span>
+            </Nav.Link>
+
+            {isLoggedIn && (
+              <>
+                <Nav.Link
+                  as={Link}
+                  to="/notifications"
+                  className={`text-left d-flex align-items-center text-white ${isLinkActive("/notifications") ? "active" : ""}`}
+                  style={{ marginBottom: "1rem" }}
+                  onClick={() => setIsOpen(false)}
+                >
+                  <IoIosInformationCircle />
+                  <span style={{ marginLeft: "1rem" }}>Notifications</span>
+                </Nav.Link>
+                <Nav.Link
+                  onClick={() => {
+                    handleLogout();
+                    setIsOpen(false);
+                  }}
+                  className="text-left d-flex align-items-center text-white"
+                  style={{ marginBottom: "1rem" }}
+                >
+                  <span style={{ marginLeft: "1rem" }}>Logout</span>
+                </Nav.Link>
+              </>
+            )}
           </Nav>
         </Navbar.Collapse>
       </Container>
