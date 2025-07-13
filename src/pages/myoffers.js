@@ -38,7 +38,7 @@ const MyOffersPage = () => {
   // };
   const fetchPackages = async (username, type, setPackages) => {
     try {
-      const response = await axios.get("http://localhost:3001/packages/by-user", {
+      const response = await axios.get("https://spaceshare-backend.onrender.com/packages/by-user", {
         params: { username, type },
       });
       setPackages(response.data);
@@ -66,7 +66,7 @@ const MyOffersPage = () => {
   const handleUpdate = async () => {
     console.log(offerData.id)
     try {
-      await axios.put(`http://localhost:3001/edit-offer/${offerData.id}`, offerData);
+      await axios.put(`https://spaceshare-backend.onrender.com/edit-offer/${offerData.id}`, offerData);
       alert("Offer updated successfully!");
       console.log(offerData)
       setShowModal(false);
@@ -82,7 +82,7 @@ const MyOffersPage = () => {
     console.log(id)
     if (window.confirm("Are you sure you want to delete this offer?")) {
       try {
-        await axios.delete(`http://localhost:3001/delete-offer/${id}`);
+        await axios.delete(`https://spaceshare-backend.onrender.com/delete-offer/${id}`);
         alert("Offer deleted successfully!");
         fetchPackages(localStorage.user, "buy", setBuyPackages);
         fetchPackages(localStorage.user, "sell", setSellPackages);

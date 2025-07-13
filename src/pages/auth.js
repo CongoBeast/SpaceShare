@@ -152,7 +152,7 @@ const AuthPage = () => {
         const formDataImage = new FormData();
         formDataImage.append('image', avatarFile); // Must match `upload.single('image')` in backend
   
-        const uploadRes = await axios.post('http://localhost:3001/upload', formDataImage, {
+        const uploadRes = await axios.post('https://spaceshare-backend.onrender.com/upload', formDataImage, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
@@ -173,7 +173,7 @@ const AuthPage = () => {
         ? 'Your login was successful'
         : 'The account registration was successful';
   
-      const response = await axios.post(`http://localhost:3001/${endpoint}`, requestData);
+      const response = await axios.post(`https://spaceshare-backend.onrender.com/${endpoint}`, requestData);
   
       setLoading(false);
   
@@ -189,7 +189,7 @@ const AuthPage = () => {
           username: formData.username,
         };
   
-        axios.post('http://localhost:3001/set-notification', notificationData);
+        axios.post('https://spaceshare-backend.onrender.com/set-notification', notificationData);
       } else {
         setMessage('Operation successful');
       }

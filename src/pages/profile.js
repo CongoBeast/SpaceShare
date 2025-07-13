@@ -57,7 +57,7 @@ const ProfilePage = () => {
     try {
       const username = localStorage.user
 
-      const response = await axios.post('http://localhost:3001/get-user', { username });
+      const response = await axios.post('https://spaceshare-backend.onrender.com/get-user', { username });
       const userData = response.data[0];
   
       setUserData(userData);
@@ -70,7 +70,7 @@ const ProfilePage = () => {
 
    const fetchBuyOfferCount = async (username, type, setOfferBuyCount) => {
       try {
-        const response = await axios.get("http://localhost:3001/packages/by-user", {
+        const response = await axios.get("https://spaceshare-backend.onrender.com/packages/by-user", {
           params: { username, type },
         });
         setOfferBuyCount(response.data.length);
@@ -81,7 +81,7 @@ const ProfilePage = () => {
 
     const fetchSellOfferCount = async (username, type, setOfferSellCount) => {
       try {
-        const response = await axios.get("http://localhost:3001/packages/by-user", {
+        const response = await axios.get("https://spaceshare-backend.onrender.com/packages/by-user", {
           params: { username, type },
         });
         setOfferSellCount(response.data.length);
@@ -127,7 +127,7 @@ const ProfilePage = () => {
     };
 
     // Submit data to the server
-    fetch("http://localhost:3001/submit-package", {
+    fetch("https://spaceshare-backend.onrender.com/submit-package", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -178,7 +178,7 @@ const ProfilePage = () => {
     };
 
     try {
-      const res = await axios.post(`http://localhost:3001/delete-user`, payload);
+      const res = await axios.post(`https://spaceshare-backend.onrender.com/delete-user`, payload);
       setIsSaving(true);
       console.log("Updated the user", res.data);
     } catch (err) {

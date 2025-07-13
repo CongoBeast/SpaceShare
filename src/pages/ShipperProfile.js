@@ -69,7 +69,7 @@ const handleReviewSubmit = async (e) => {
   };
 
   try {
-    const response = await axios.post("http://localhost:3001/set-reviews", reviewData);
+    const response = await axios.post("https://spaceshare-backend.onrender.com/set-reviews", reviewData);
     console.log("Review submitted:", response.data);
 
     // Optional: clear form
@@ -87,7 +87,7 @@ const handleReviewSubmit = async (e) => {
   const fetchReviews = async (companyId) => {
     try {
 
-      const response = await axios.post('http://localhost:3001/get-reviews', { companyId });
+      const response = await axios.post('https://spaceshare-backend.onrender.com/get-reviews', { companyId });
       const data = response.data;
 
       if (data) setCompanyReviews(data);
@@ -102,7 +102,7 @@ const handleReviewSubmit = async (e) => {
         setLoading(true);
     
         // 1. Fetch the main shipper document
-        const response = await axios.post('http://localhost:3001/get-shipper', {
+        const response = await axios.post('https://spaceshare-backend.onrender.com/get-shipper', {
             companyName,
         });
     
@@ -117,17 +117,17 @@ const handleReviewSubmit = async (e) => {
         setCompanyReviewId(companyReviewId)
     
         // 3. Fetch shipping rates
-        const ratesResponse = await axios.post('http://localhost:3001/get-rates', { companyId});
+        const ratesResponse = await axios.post('https://spaceshare-backend.onrender.com/get-rates', { companyId});
         setShipperRates(ratesResponse.data);
 
         console.log(ratesResponse.data[0])
 
     
         // 4. Fetch lead times
-        const leadTimesResponse = await axios.post('http://localhost:3001/get-leadTimes', { companyId});
+        const leadTimesResponse = await axios.post('https://spaceshare-backend.onrender.com/get-leadTimes', { companyId});
         setLeadTimes(leadTimesResponse.data);
 
-        const companyReviewResponse = await axios.post('http://localhost:3001/get-reviews', { companyId });
+        const companyReviewResponse = await axios.post('https://spaceshare-backend.onrender.com/get-reviews', { companyId });
 
         setCompanyReviews(companyReviewResponse.data)
         

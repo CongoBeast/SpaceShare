@@ -68,7 +68,7 @@ const ShipperDashboard = () => {
       const companyName = localStorage.companyName
 
       setLoading(true);
-      const response = await axios.post('http://localhost:3001/get-shipper', { companyName });
+      const response = await axios.post('https://spaceshare-backend.onrender.com/get-shipper', { companyName });
       const shipperData = response.data;
 
       setShipper(shipperData);
@@ -121,7 +121,7 @@ const ShipperDashboard = () => {
 
   
     try {
-      const res = await axios.post(`http://localhost:3001${endpoint}`, payload);
+      const res = await axios.post(`https://spaceshare-backend.onrender.com${endpoint}`, payload);
       console.log('Lead times saved:', res.data);
       setLeadTimes(leadTimeInputs);
       setShowLeadTimesModal(false);
@@ -160,7 +160,7 @@ const ShipperDashboard = () => {
     const endpoint = isUpdate ? '/update-rate' : '/set-rate';
   
     try {
-      const res = await axios.post(`http://localhost:3001${endpoint}`, payload);
+      const res = await axios.post(`https://spaceshare-backend.onrender.com${endpoint}`, payload);
       console.log(`${isUpdate ? 'Updated' : 'Saved'}:`, res.data);
       setShowRatesModal(false);
     } catch (err) {
@@ -187,7 +187,7 @@ const ShipperDashboard = () => {
     };
 
     try {
-      const res = await axios.post(`http://localhost:3001/update-shipper`, payload);
+      const res = await axios.post(`https://spaceshare-backend.onrender.com/update-shipper`, payload);
       setIsSaving(true);
       console.log("Updated the shipper with cities", res.data);
       setShowCitiesModal(false);
@@ -208,7 +208,7 @@ const ShipperDashboard = () => {
 
   const fetchRates = async (companyId) => {
     try {
-      const response = await axios.post('http://localhost:3001/get-rates', { companyId });
+      const response = await axios.post('https://spaceshare-backend.onrender.com/get-rates', { companyId });
       const data = response.data;
 
       if (data) setShipperRates(data);
@@ -220,7 +220,7 @@ const ShipperDashboard = () => {
 
     const fetchLeadTimes = async (companyId) => {
       try {
-        const response = await axios.post('http://localhost:3001/get-leadTimes', { companyId });
+        const response = await axios.post('https://spaceshare-backend.onrender.com/get-leadTimes', { companyId });
         const data = response.data;
 
         if (data && !isEqual(leadTimes, data)) {
@@ -280,7 +280,7 @@ const ShipperDashboard = () => {
       }
     };
 
-    const res = await axios.post('http://localhost:3001/update-shipper', payload);
+    const res = await axios.post('https://spaceshare-backend.onrender.com/update-shipper', payload);
     console.log("Introduction updated:", res.data);
     
     // Update local state
@@ -319,7 +319,7 @@ const ShipperDashboard = () => {
 
       console.log(payload)
 
-      const res = await axios.post('http://localhost:3001/update-shipper', payload);
+      const res = await axios.post('https://spaceshare-backend.onrender.com/update-shipper', payload);
       console.log("User info updated:", res.data);
       
       // Update local state to match your nested structure
@@ -379,7 +379,7 @@ const ShipperDashboard = () => {
        const formDataImage = new FormData();
        formDataImage.append('image', selectedFile);
         
-       const uploadRes = await axios.post('http://localhost:3001/upload', formDataImage, {
+       const uploadRes = await axios.post('https://spaceshare-backend.onrender.com/upload', formDataImage, {
           headers: {
             'Content-Type': 'multipart/form-data',
               },

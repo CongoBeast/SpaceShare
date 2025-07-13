@@ -13,7 +13,7 @@ const OfferRequestsPage = () => {
     const handleAccept = async (request) => {
       console.log(request._id)
       try {
-        await axios.put(`http://localhost:3001/edit-request/${request._id}`, request);
+        await axios.put(`https://spaceshare-backend.onrender.com/edit-request/${request._id}`, request);
         alert("Request updated successfully!");
         console.log(request)
         // setShowModal(false);
@@ -26,7 +26,7 @@ const OfferRequestsPage = () => {
 
   const fetchAcceptedRequests = async (username, status, setAcceptedRequests) => {
     try {
-      const response = await axios.get("http://localhost:3001/recieved-requests/by-user", {
+      const response = await axios.get("https://spaceshare-backend.onrender.com/recieved-requests/by-user", {
         params: { username, status },
       });
       setAcceptedRequests(response.data);
@@ -37,7 +37,7 @@ const OfferRequestsPage = () => {
 
   const fetchPendingRequests = async (username, status, setPendingRequests) => {
     try {
-      const response = await axios.get("http://localhost:3001/recieved-requests/by-user", {
+      const response = await axios.get("https://spaceshare-backend.onrender.com/recieved-requests/by-user", {
         params: { username, status },
       });
       setPendingRequests(response.data);

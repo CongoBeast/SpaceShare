@@ -1,19 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Table, Button, Form, Modal } from 'react-bootstrap';
 import axios from 'axios'
+import { FaEdit, FaTrashAlt } from "react-icons/fa";
 
 const ManageShipments = () => {
-  // Sample data
-  const [shipments, setShipments] = useState([
-    { id: 1, shipperID: 'SH1001', transportMode: 'Road', clientsCount: 3, status: 'In Transit', currentLocation: 'Guangzhou', departureDate: '2023-05-15', eta: '2023-05-20' },
-    { id: 2, shipperID: 'SH1002', transportMode: 'Air', clientsCount: 5, status: 'Delivered', currentLocation: 'Guangzhou',departureDate: '2023-05-10', eta: '2023-05-12' },
-    { id: 3, shipperID: 'SH1003', transportMode: 'Sea', clientsCount: 8, status: 'Pending', currentLocation: 'Guangzhou',departureDate: '2023-05-20', eta: '2023-06-05' },
-  ]);
 
-  const [announcements, setAnnouncements] = useState([
-    { id: 1, title: 'New Shipping Rates', content: 'Updated rates effective June 1st', date: '2023-05-25' },
-    { id: 2, title: 'Holiday Schedule', content: 'No shipments on July 4th', date: '2023-05-20' },
-  ]);
+  const [shipments , setShipments] = useState([])
+
+  // const [announcements, setAnnouncements] = useState([
+  //   { id: 1, title: 'New Shipping Rates', content: 'Updated rates effective June 1st', date: '2023-05-25' },
+  //   { id: 2, title: 'Holiday Schedule', content: 'No shipments on July 4th', date: '2023-05-20' },
+  // ]);
+  const [announcements, setAnnouncements] = useState([])
 
   const [showAddShipment, setShowAddShipment] = useState(false);
   const [showAddAnnouncement, setShowAddAnnouncement] = useState(false);
@@ -29,17 +27,25 @@ const ManageShipments = () => {
     eta: ''
     });
 
-    const [editingShipment, setEditingShipment] = useState(null);
+  const [editingShipment, setEditingShipment] = useState(null);
+
+  const [stats , setStats] = useState({
+        totalClients: 0,
+        totalShipments: 0,
+        inTransit: 0,
+        delivered: 0,
+        pending: 0
+      })
 
 
   // Stats data
-  const stats = {
-    totalClients: 42,
-    totalShipments: 18,
-    inTransit: 5,
-    delivered: 10,
-    pending: 3
-  };
+  // const stats = {
+  //   totalClients: 42,
+  //   totalShipments: 18,
+  //   inTransit: 5,
+  //   delivered: 10,
+  //   pending: 3
+  // };
 
   // Card gradient styles
   const cardStyles = [
@@ -64,74 +70,206 @@ const ManageShipments = () => {
     setShowAddShipment(true);
     };
 
-    // For saving the shipment
-    const handleSaveShipment = () => {
-    // Validate form
-    if (!shipmentForm.shipperID || !shipmentForm.transportMode || !shipmentForm.clientsCount || 
-        !shipmentForm.status || !shipmentForm.currentLocation || !shipmentForm.departureDate || !shipmentForm.eta) {
-        alert('Please fill all required fields');
-        return;
-    }
+   const handleSaveShipment = async () => {
+        // Validate form
+        if (!shipmentForm.transportMode || !shipmentForm.clientsCount || 
+            !shipmentForm.status || !shipmentForm.currentLocation || 
+            !shipmentForm.departureDate || !shipmentForm.eta) {
+            alert('Please fill all required fields');
+            return;
+        }
 
-    if (editingShipment) {
-        // Update existing shipment
-        setShipments(shipments.map(shipment => 
-        shipment.id === editingShipment ? { ...shipmentForm, id: editingShipment } : shipment
-        ));
-    } else {
-        // Add new shipment
-        setShipments([...shipments, {
-        ...shipmentForm,
-        id: Math.max(0, ...shipments.map(s => s.id)) + 1 // Generate new ID
-        }]);
-    }
+        try {
+            // Generate shipping ID (using the function we created)
+            const shipperID = generateShippingID();
+            
+            // Prepare the shipment data
+            const shipmentData = {
+            ...shipmentForm,
+            shipperID, // Use the generated ID
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            companyId: localStorage.companyId
+            };
 
-    // Reset and close
-    setShipmentForm({
-        shipperID: '',
-        transportMode: '',
-        clientsCount: '',
-        status: '',
-        currentLocation: '',
-        departureDate: '',
-        eta: ''
-    });
-    setEditingShipment(null);
-    setShowAddShipment(false);
-    };
+            // Remove the local ID if it exists (since MongoDB will generate its own _id)
+            delete shipmentData.id;
 
-  const handleAddAnnouncement = () => {
-    setAnnouncements([...announcements, {
-      id: announcements.length + 1,
-      title: newAnnouncement.title,
-      content: newAnnouncement.content,
-      date: new Date().toISOString().split('T')[0]
-    }]);
-    setNewAnnouncement({ title: '', content: '' });
-    setShowAddAnnouncement(false);
-  };
+            // Send to backend
+            const response = await axios.post('https://spaceshare-backend.onrender.com/set-shipment', shipmentData);
+
+            if (response.data && response.data.insertedId) {
+            // Update local state with the new shipment (including MongoDB _id)
+            setShipments([...shipments, { ...shipmentData, _id: response.data.insertedId }]);
+            
+            // Reset and close
+            setShipmentForm({
+                shipperID: '',
+                transportMode: '',
+                clientsCount: '',
+                status: '',
+                currentLocation: '',
+                departureDate: '',
+                eta: ''
+            });
+            setShowAddShipment(false);
+            
+            // Show success message
+            alert('Shipment saved successfully!');
+            }
+        } catch (error) {
+            console.error('Error saving shipment:', error);
+            alert('Failed to save shipment. Please try again.');
+        }
+        };
+
+     const handleAddAnnouncement = async () => {
+        // Validate form
+        if (!newAnnouncement.title || !newAnnouncement.content) {
+            alert('Please fill both title and content fields');
+            return;
+        }
+
+        try {
+            // Prepare the announcement data
+            const announcementData = {
+            title: newAnnouncement.title,
+            content: newAnnouncement.content,
+            date: new Date().toISOString().split('T')[0], // YYYY-MM-DD format
+            createdAt: new Date().toISOString(),
+            companyId: localStorage.companyId
+            };
+
+            // Send to backend
+            const response = await axios.post('https://spaceshare-backend.onrender.com/set-announcements', announcementData);
+
+            if (response.data && response.data.insertedId) {
+            // Update local state with the new announcement (including MongoDB _id)
+            setAnnouncements([...announcements, { 
+                ...announcementData, 
+                _id: response.data.insertedId 
+            }]);
+            
+            // Reset form and close modal
+            setNewAnnouncement({ title: '', content: '' });
+            setShowAddAnnouncement(false);
+            
+            // Show success message
+            alert('Announcement added successfully!');
+            }
+        } catch (error) {
+            console.error('Error adding announcement:', error);
+            alert('Failed to add announcement. Please try again.');
+        }
+        };
+
 
   const generateShippingID = () => {
-  // Get company name from localStorage (fallback to 'COM' if not available)
-  const companyPrefix = localStorage.companyName 
-    ? localStorage.companyName.slice(0, 3).toUpperCase() 
-    : 'COM';
+    // Get company name from localStorage (fallback to 'COM' if not available)
+    const companyPrefix = localStorage.companyName 
+        ? localStorage.companyName.slice(0, 3).toUpperCase() 
+        : 'COM';
 
-  // Get current date components
-  const now = new Date();
-  const day = String(now.getDate()).padStart(2, '0');
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const dateCode = `${day}${month}`; // DDMM format
+    // Get current date components
+    const now = new Date();
+    const day = String(now.getDate()).padStart(2, '0');
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const dateCode = `${day}${month}`; // DDMM format
 
-  // Generate random 3-character alphanumeric code
-  const randomChars = Math.random().toString(36).slice(2, 5).toUpperCase();
+    // Generate random 3-character alphanumeric code
+    const randomChars = Math.random().toString(36).slice(2, 5).toUpperCase();
 
-  // Combine all parts to make 9-character code
-  const shippingID = `${companyPrefix}${dateCode}${randomChars}`;
+    // Combine all parts to make 9-character code
+    const shippingID = `${companyPrefix}${dateCode}${randomChars}`;
 
-  // Ensure exactly 9 characters (in case company prefix was shorter)
-  return shippingID.slice(0, 9).padEnd(9, 'X'); // Pad with X if needed
-}
+    // Ensure exactly 9 characters (in case company prefix was shorter)
+    return shippingID.slice(0, 9).padEnd(9, 'X'); // Pad with X if needed
+    }
+
+    const fetchShipments = async (companyId) => {
+        try {
+    
+          console.log(companyId)
+    
+          const response = await axios.post('https://spaceshare-backend.onrender.com/get-shipments', { companyId });
+          const data = response.data;
+    
+          if (data){
+            setShipments(data);
+            const stats = {
+              totalClients: 0,
+              totalShipments: 0,
+              inTransit: 0,
+              delivered: 0,
+              pending: 0
+            };
+
+            // Calculate statistics
+            data.forEach(shipment => {
+              stats.totalShipments += 1;
+              stats.totalClients += shipment.clientsCount || 0;
+              
+              switch(shipment.status) {
+                case 'In Transit':
+                  stats.inTransit += 1;
+                  break;
+                case 'Delivered':
+                  stats.delivered += 1;
+                  break;
+                case 'Pending':
+                  stats.pending += 1;
+                  break;
+                // Add more status cases if needed
+              }
+            });
+
+             setStats(stats)
+
+            // return { shipments: data, stats };
+          } 
+          else {
+            console.warn("No shipments found.");
+            return { shipments: [], stats: {
+              totalClients: 0,
+              totalShipments: 0,
+              inTransit: 0,
+              delivered: 0,
+              pending: 0
+            }};
+          }
+        } catch (error) {
+          console.error("Error fetching shipments:", error);
+        }
+      };
+
+    const fetchAnnouncements = async (companyId) => {
+        try {
+    
+          console.log(companyId)
+    
+          const response = await axios.post('https://spaceshare-backend.onrender.com/get-announcements', { companyId });
+          const data = response.data;
+    
+          if (data) setAnnouncements(data);
+          else console.warn("No announcements found.");
+        } catch (error) {
+          console.error("Error fetching announcements:", error);
+        }
+      };
+    
+    useEffect(() => {
+      //   try {
+      //   const { shipments, stats } = fetchShipments(localStorage.companyId);
+      //   console.log(shipments)
+      //   setShipments(shipments);
+      //   setStats(stats); // Assuming you have a stats state
+      //   console.log('Current stats:', stats);
+      // } catch (error) {
+      //   console.log(error)
+      // }
+       fetchShipments(localStorage.companyId);
+        fetchAnnouncements(localStorage.companyId);
+      }, []);
 
   return (
     <Container fluid className="py-4">
@@ -141,7 +279,7 @@ const ManageShipments = () => {
           <Card className="shadow-sm border-0" style={cardStyles[0]}>
             <Card.Body className="text-white">
               <h5 className="card-title">Total Clients</h5>
-              <h2 className="mb-0">{stats.totalClients}</h2>
+              <h2 className="mb-0">{shipments ? stats.totalClients : 0}</h2>
             </Card.Body>
           </Card>
         </Col>
@@ -149,7 +287,7 @@ const ManageShipments = () => {
           <Card className="shadow-sm border-0" style={cardStyles[1]}>
             <Card.Body className="text-white">
               <h5 className="card-title">Total Shipments</h5>
-              <h2 className="mb-0">{stats.totalShipments}</h2>
+              <h2 className="mb-0">{shipments ? stats.totalShipments : 0}</h2>
             </Card.Body>
           </Card>
         </Col>
@@ -157,7 +295,7 @@ const ManageShipments = () => {
           <Card className="shadow-sm border-0" style={cardStyles[2]}>
             <Card.Body className="text-white">
               <h5 className="card-title">In Transit</h5>
-              <h2 className="mb-0">{stats.inTransit}</h2>
+              <h2 className="mb-0">{shipments ? stats.inTransit : 0}</h2>
             </Card.Body>
           </Card>
         </Col>
@@ -165,7 +303,7 @@ const ManageShipments = () => {
           <Card className="shadow-sm border-0" style={cardStyles[3]}>
             <Card.Body className="text-white">
               <h5 className="card-title">Delivered</h5>
-              <h2 className="mb-0">{stats.delivered}</h2>
+              <h2 className="mb-0">{shipments ? stats.delivered : 0}</h2>
             </Card.Body>
           </Card>
         </Col>
@@ -196,7 +334,7 @@ const ManageShipments = () => {
             </thead>
             <tbody>
               {shipments.map((shipment) => (
-                <tr key={shipment.id}>
+                <tr key={shipment._id}>
                   <td>{shipment.shipperID}</td>
                   <td>{shipment.transportMode}</td>
                   <td>{shipment.clientsCount}</td>
@@ -209,19 +347,16 @@ const ManageShipments = () => {
                   <td>{shipment.departureDate}</td>
                   <td>{shipment.eta}</td>
                   <td>
-                    <Button variant="outline-primary" size="sm" className="me-2">
-                      <i className="fas fa-edit"></i>
-                    </Button>
                     <Button 
                         variant="outline-primary" 
                         size="sm" 
                         className="me-2"
                         onClick={() => handleEdit(shipment)}
                         >
-                        <i className="fas fa-edit"></i>
+                        <FaEdit />
                     </Button>
-                    <Button variant="outline-danger" size="sm">
-                      <i className="fas fa-trash"></i>
+                    <Button variant="outline-danger" size="sm" disabled={true}>
+                      <FaTrashAlt />
                     </Button>
                   </td>
                 </tr>
@@ -242,7 +377,7 @@ const ManageShipments = () => {
           </div>
           
           {announcements.map((announcement) => (
-            <Card key={announcement.id} className="mb-3">
+            <Card key={announcement._id} className="mb-3">
               <Card.Body>
                 <div className="d-flex justify-content-between">
                   <h5>{announcement.title}</h5>
@@ -300,18 +435,6 @@ const ManageShipments = () => {
             <Form>
             <Row>
                 <Col md={6}>
-                <Form.Group className="mb-3" controlId="formShipperID">
-                    <Form.Label>Shipper ID</Form.Label>
-                    <Form.Control
-                    type="text"
-                    placeholder="Enter Shipper ID"
-                    value={shipmentForm.shipperID}
-                    onChange={(e) => setShipmentForm({...shipmentForm, shipperID: e.target.value})}
-                    required
-                    />
-                </Form.Group>
-                </Col>
-                <Col md={6}>
                 <Form.Group className="mb-3" controlId="formTransportMode">
                     <Form.Label>Transport Mode</Form.Label>
                     <Form.Control
@@ -321,10 +444,9 @@ const ManageShipments = () => {
                     required
                     >
                     <option value="">Select Transport Mode</option>
-                    <option value="Road">Road</option>
+                    <option value="Express">Air Express</option>
                     <option value="Air">Air</option>
                     <option value="Sea">Sea</option>
-                    <option value="Rail">Rail</option>
                     </Form.Control>
                 </Form.Group>
                 </Col>

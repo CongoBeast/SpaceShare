@@ -14,7 +14,7 @@ const NotificationsPage = () => {
   useEffect(() => {
     const username = localStorage.user; // Replace with the actual username
     axios
-      .post("http://localhost:3001/get-notifications", { username })
+      .post("https://spaceshare-backend.onrender.com/get-notifications", { username })
       .then((response) => {
         const fetchedNotifications = response.data;
         const unread = fetchedNotifications.filter((n) => !n.read);
@@ -32,7 +32,7 @@ const NotificationsPage = () => {
 
   const markAsRead = (id) => {
     axios
-      .put(`http://localhost:3001/edit-request/${id}`, { read: true })
+      .put(`https://spaceshare-backend.onrender.com/edit-request/${id}`, { read: true })
       .then(() => {
         // Update local state after marking as read
         setNotifications((prev) => {

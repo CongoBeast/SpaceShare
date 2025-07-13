@@ -20,7 +20,7 @@ const ShipperCardPage = () => {
   // Function to fetch all shippers from the server
   const fetchShippers = async () => {
     try {
-      const response = await axios.post('http://localhost:3001/get-all-shippers');
+      const response = await axios.post('https://spaceshare-backend.onrender.com/get-all-shippers');
       setShippers(response.data); // Update state with the fetched shippers
     } catch (error) {
       console.error('Error fetching shippers:', error);
@@ -62,7 +62,7 @@ const ShipperCardPage = () => {
         read: false
       }
   
-      fetch("http://localhost:3001/create-chat", {
+      fetch("https://spaceshare-backend.onrender.com/create-chat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -93,7 +93,7 @@ const ShipperCardPage = () => {
           };
     
           // Send the message
-          return fetch("http://localhost:3001/send-message", {
+          return fetch("https://spaceshare-backend.onrender.com/send-message", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",

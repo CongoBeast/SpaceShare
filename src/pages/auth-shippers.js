@@ -175,7 +175,7 @@ const AuthShipperPage = () => {
         const formDataImage = new FormData();
         formDataImage.append('image', avatarFile);
   
-        const uploadRes = await axios.post('http://localhost:3001/upload', formDataImage, {
+        const uploadRes = await axios.post('https://spaceshare-backend.onrender.com/upload', formDataImage, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
@@ -204,7 +204,7 @@ const AuthShipperPage = () => {
         ? 'Your login was successful'
         : 'The account registration was successful';
   
-      const response = await axios.post(`http://localhost:3001/${endpoint}`, requestData);
+      const response = await axios.post(`https://spaceshare-backend.onrender.com/${endpoint}`, requestData);
       setLoading(false);
   
       if (response.data.token) {
@@ -236,7 +236,7 @@ const AuthShipperPage = () => {
           username: formData.companyName,
         };
   
-        axios.post('http://localhost:3001/set-notification', notificationData);
+        axios.post('https://spaceshare-backend.onrender.com/set-notification', notificationData);
       } else {
         setMessage('Operation successful');
       }

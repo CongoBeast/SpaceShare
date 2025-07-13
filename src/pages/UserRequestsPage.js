@@ -10,7 +10,7 @@ const UserRequestsPage = () => {
 
   const fetchAcceptedRequests = async (username, status, setAcceptedRequests) => {
     try {
-      const response = await axios.get("http://localhost:3001/recieved-requests/by-user", {
+      const response = await axios.get("https://spaceshare-backend.onrender.com/recieved-requests/by-user", {
         params: { username, status },
       });
       setAcceptedRequests(response.data);
@@ -21,7 +21,7 @@ const UserRequestsPage = () => {
 
   const fetchPendingRequests = async (username, status, setPendingRequests) => {
     try {
-      const response = await axios.get("http://localhost:3001/recieved-requests/by-user", {
+      const response = await axios.get("https://spaceshare-backend.onrender.com/recieved-requests/by-user", {
         params: { username, status },
       });
       setPendingRequests(response.data);
