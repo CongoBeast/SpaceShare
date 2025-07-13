@@ -28,16 +28,7 @@ export default function ChatPage() {
 
 
   return (
-    // <Container fluid className="vh-100">
-    //   <Row className="h-100">
-    //     <Col md={4} className="border-end p-0">
-    //       <ChatList onSelectChat={setSelectedChat} />
-    //     </Col>
-    //     <Col md={8} className="p-0">
-    //       <ChatWindow chat={selectedChat} />
-    //     </Col>
-    //   </Row>
-    // </Container>
+
     <Container fluid className="vh-100">
     <Row className="h-100">
       {/* Show ChatList on desktop OR mobile if not in chat view */}
