@@ -86,7 +86,7 @@ const handleSubmit = () => {
   console.log(chatData)
 
   // Step 1: Check if the chat already exists
-  fetch("http://localhost:3001/check-chat", {
+  fetch("https://spaceshare-backend.onrender.com/check-chat", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -106,7 +106,7 @@ const handleSubmit = () => {
       }
 
       // Step 2: If chat doesn't exist, create new chat
-      return fetch("http://localhost:3001/create-chat", {
+      return fetch("https://spaceshare-backend.onrender.com/create-chat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -134,7 +134,7 @@ const handleSubmit = () => {
       };
 
       // Send message
-      return fetch("http://localhost:3001/send-message", {
+      return fetch("https://spaceshare-backend.onrender.com/send-message", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -176,7 +176,7 @@ const handleInputChange = (e) => {
   const fetchSellPackages = async () => {
     const type  = "sell"
     try {
-      const response = await axios.get('http://localhost:3001/packages', {
+      const response = await axios.get('https://spaceshare-backend.onrender.com/packages', {
         params: { type }, // Pass the type as a query parameter
       });
       setSellPackages(response.data); // Update state with fetched packages
@@ -188,7 +188,7 @@ const handleInputChange = (e) => {
   const fetchBuyPackages = async () => {
     const type = "buy"
     try {
-      const response = await axios.get('http://localhost:3001/packages', {
+      const response = await axios.get('https://spaceshare-backend.onrender.com/packages', {
         params: { type }, // Pass the type as a query parameter
       });
       setBuyPackages(response.data); // Update state with fetched packages

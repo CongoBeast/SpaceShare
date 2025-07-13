@@ -25,7 +25,7 @@ function Sidebar() {
   const fetchChatList = async () => {
         const username = localStorage.user;
         try {
-          const response = await axios.post('http://localhost:3001/get-chats', { username });
+          const response = await axios.post('https://spaceshare-backend.onrender.com/get-chats', { username });
           setChatList(response.data); // Update state with fetched packages
         } catch (error) {
           console.error('Error fetching packages:', error);
@@ -69,7 +69,7 @@ function Sidebar() {
   
     // Send notification to backend
     axios
-      .post('http://localhost:3001/set-notification', notificationData)
+      .post('https://spaceshare-backend.onrender.com/set-notification', notificationData)
       .then(() => {
         console.log('Logout notification sent successfully');
       })
@@ -107,7 +107,7 @@ function Sidebar() {
     
       // Send notification to backend
       axios
-        .post('http://localhost:3001/set-notification', notificationData)
+        .post('https://spaceshare-backend.onrender.com/set-notification', notificationData)
         .then(() => {
           console.log('Logout notification sent successfully');
         })
