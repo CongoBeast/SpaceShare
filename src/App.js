@@ -12,7 +12,13 @@ import TopNavBar from "./components/TopNavBar";
 import NotificationsPage from './pages/notifications.js';
 import MyOffersPage from './pages/myoffers.js';
 import OfferRequestsPage from './pages/offerRequests.js';
-import RequestResponses from './pages/requestResponse.js'
+import RequestResponses from './pages/requestResponse.js';
+import ChatPage from './ChatPage/ChatPage.js';
+import ShipperCardPage from './pages/ShipperCardPage.jsx';
+import ShipperDashboard from './pages/shippers-dashboard.js'
+import AuthShipperPage from './pages/auth-shippers.js'
+import ShipperProfile from './pages/ShipperProfile.js'
+import ManageShipments from './pages/manageShipments.js'
 
 
 function App() {
@@ -40,6 +46,12 @@ function App() {
           <Route path="/myoffers" element={<MyOffersPage />} />
           <Route path="/myrequests" element={<RequestResponses />} />
           <Route path="/offerrequests" element={<OfferRequestsPage/>}></Route>
+          <Route path="/chat" element={<ChatPage/>}></Route>
+          <Route path="/shippers" element={<ShipperCardPage/>}></Route>
+          <Route path="/shipper-dashboard" element={<ShipperDashboard/>}></Route>
+          <Route path="/auth-shipper" element={<AuthShipperPage/>}></Route>
+          <Route path="/shipper-profile/:companyName" element={<ShipperProfile/>}></Route>
+          <Route path="/manage-shipments" element={<ManageShipments/>}></Route>
         </Routes>
       </div>
     
