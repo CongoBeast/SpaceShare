@@ -16,7 +16,7 @@ export default function ChatList({ onSelectChat }) {
 
     try {
       setLoading(true); // Start loading
-      const response = await axios.post('http://localhost:3001/get-chats', { username });
+      const response = await axios.post('https://spaceshare-backend.onrender.com/get-chats', { username });
       setChatList(response.data);
     } catch (error) {
       console.error('Error fetching packages:', error);
@@ -28,7 +28,7 @@ export default function ChatList({ onSelectChat }) {
   const handleSelectChat = async (chat) => {
     if (!chat.read) {
       try {
-        await axios.put(`http://localhost:3001/edit-chats/${chat._id}`, { read: true });
+        await axios.put(`https://spaceshare-backend.onrender.com/edit-chats/${chat._id}`, { read: true });
   
         // Update local state for immediate feedback
         setChatList(prevChats =>

@@ -28,10 +28,10 @@ export default function MessageInput({ chat , addMessage}) {
 
     try {
       // First, send the new message
-      await axios.post('http://localhost:3001/send-message', newMessage);
+      await axios.post('https://spaceshare-backend.onrender.com/send-message', newMessage);
       
       // Then update the chat's last message and timestamp
-      await axios.put(`http://localhost:3001/edit-chats/${chat._id}`, {
+      await axios.put(`https://spaceshare-backend.onrender.com/edit-chats/${chat._id}`, {
         lastMessage: message,
         lastTimestamp: new Date().toISOString(),
         read: false
@@ -62,10 +62,10 @@ export default function MessageInput({ chat , addMessage}) {
 
     try {
       // First, send the new message
-      await axios.post('http://localhost:3001/send-message', newMessage);
+      await axios.post('https://spaceshare-backend.onrender.com/send-message', newMessage);
       
       // Then update the chat's last message and timestamp
-      await axios.put(`http://localhost:3001/edit-chats/${chat._id}`, {
+      await axios.put(`https://spaceshare-backend.onrender.com/edit-chats/${chat._id}`, {
         lastMessage: message,
         lastTimestamp: new Date().toISOString(),
         read: false

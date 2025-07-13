@@ -30,7 +30,7 @@ export default function ChatWindow({ chat, onBack, isMobile }) {
   const fetchMessages = async (chatId) => {
     setIsLoadingMessages(true);
     try {
-      const response = await fetch("http://localhost:3001/get-messages", {
+      const response = await fetch("https://spaceshare-backend.onrender.com/get-messages", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
