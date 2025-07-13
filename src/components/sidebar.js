@@ -134,7 +134,7 @@ function Sidebar() {
       className="flex-column d-none d-lg-block sidebar"
     >
       <Navbar.Brand as={Link} to="/">
-        <img src="https://github.com/CongoBeast/SpaceShare/blob/main/public/ShareSpace-Logo.png?raw=true" 
+        <img src="https://github.com/CongoBeast/SpaceShare/blob/main/public/Meli-removebg-preview.png?raw=true" 
         alt="Imat Tech Logo"
           style={{  width: "140px" , height: "80px" }}
           className="d-flex align-items-center"

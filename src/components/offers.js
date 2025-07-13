@@ -124,10 +124,10 @@ const handleSubmit = () => {
       // Build the message
       const newMessage = {
         chatId: chatId,
-        recieverName: chatData.recieverName,
+        recieverName: chatData.recieverID,
         userName,
         userId,
-        recieverID: chatData.recieverID,
+        recieverID: chatData.recieverName,
         message: chatData.lastMessage,
         timeCreated: new Date().toISOString(),
         read: false,
@@ -270,15 +270,15 @@ const handleInputChange = (e) => {
               </>
             ) : (
               <>
-                <strong>Space Available:</strong> {offer.space} <br />
-                <strong>Price:</strong> ${offer.price} ${offer.denomination} <br />
+                <strong>Space Available:</strong> {offer.space} {offer.units} <br />
+                <strong>Price:</strong> {offer.price} {offer.denomination}/{offer.units} <br />
               </>
             )}
             <strong>Goods Type:</strong> {offer.goodsType} <br />
             <strong>Departure:</strong> {offer.departure} <br />
             <strong>Destination:</strong> {offer.destination} <br />
             <strong>Posted:</strong> {formatReviewDate(offer.datePosted)} <br />
-            <strong>Price:</strong> {offer.price} {offer.denomination} <br />
+            {/* <strong>Price:</strong> {offer.price} {offer.denomination} <br /> */}
             <strong>Departure Date:</strong> {offer.departureDate} <br />
           </p>
           {/* Contact button */}
