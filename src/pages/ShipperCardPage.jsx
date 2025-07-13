@@ -10,6 +10,9 @@ const ShipperCardPage = () => {
   const [isSending, setIsSending] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false); // Simulating login status
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filteredShippers, setFilteredShippers] = useState([]);
   
 
   const [shippers, setShippers] = useState([]);
@@ -126,14 +129,41 @@ const ShipperCardPage = () => {
     setIsLoggedIn(!!localStorage.getItem("token"));
   }, []);
 
+  useEffect(() => {
+    setFilteredShippers(shippers);
+  }, [shippers]);
+
+  const handleSearch = (term) => {
+      setSearchTerm(term);
+      if (!term) {
+        setFilteredShippers(shippers);
+        return;
+      }
+      
+      const filtered = shippers.filter(shipper => {
+        const searchLower = term.toLowerCase();
+        return (
+          shipper.completeUserData.companyName.toLowerCase().includes(searchLower) ||
+          shipper.completeUserData.hqLocation.toLowerCase().includes(searchLower) ||
+          shipper.completeUserData.transportModes.some(mode => 
+            mode.toLowerCase().includes(searchLower)
+        ));
+      });
+      
+      setFilteredShippers(filtered);
+    };  
+
   return (
     <Container className="mt-4">
       <h3 className="text-center mb-4">Pro Shippers</h3>
 
       {/* Search and Filters */}
       <Row className="mb-4">
-        <Col md={6}>
-          <Form.Control type="text" placeholder="Search by name or city" />
+        <Col md={3}>
+          <Form.Control type="text" placeholder="Search by name or city" 
+          value={searchTerm}
+          onChange={(e) => handleSearch(e.target.value)}
+          />
         </Col>
         <Col md={2}>
           <Form.Select>
@@ -160,7 +190,7 @@ const ShipperCardPage = () => {
 
       {/* Shipper Cards */}
       <Row>
-        {shippers.map((shipper) => (
+        {filteredShippers.map((shipper) => (
           <Col key={shipper.completeUserData.userID} md={6} lg={4} className="mb-4">
             <Card>
               <Card.Body>
@@ -222,14 +252,6 @@ const ShipperCardPage = () => {
                   <IoChatbubbleEllipses />
                 </button>
               )}
-
-                <Button
-                  variant="outline-secondary"
-                  className="m-2"
-                  onClick={() => handleViewRates(shipper.rates)}
-                >
-                  View Rates
-                </Button>
 
                 <Button
                   variant="outline-secondary"

@@ -23,7 +23,7 @@ const ShipperProfile = () => {
   
 
   const [rates, setRates] = useState({
-      general: { sea: { RMB: 12, USD: 1.5 }, air: { RMB: 20, USD: 2.5 }, express: { RMB: 30, USD: 4 } },
+      general: { sea: { RMB: 15, USD: 1.5 }, air: { RMB: 20, USD: 2.5 }, express: { RMB: 30, USD: 4 } },
       phones: { sea: { RMB: 15, USD: 2 }, air: { RMB: 25, USD: 3 }, express: { RMB: 40, USD: 5 } },
       laptops: { sea: { RMB: 20, USD: 3 }, air: { RMB: 35, USD: 4.5 }, express: { RMB: 50, USD: 6 } },
       electronics: { sea: { RMB: 18, USD: 2.2 }, air: { RMB: 28, USD: 3.2 }, express: { RMB: 45, USD: 5.2 } },
@@ -38,6 +38,8 @@ const ShipperProfile = () => {
   const [reviewTitle, setReviewTitle] = useState('');
   const [reviewRating, setReviewRating] = useState(5); // Default to 5
   const [newReview, setNewReview] = useState('');
+
+  const [deliveryCities, setDeliveryCities] = useState([]);
 
   
 
@@ -85,8 +87,6 @@ const handleReviewSubmit = async (e) => {
   const fetchReviews = async (companyId) => {
     try {
 
-      console.log(companyId)
-
       const response = await axios.post('http://localhost:3001/get-reviews', { companyId });
       const data = response.data;
 
@@ -96,19 +96,6 @@ const handleReviewSubmit = async (e) => {
       console.error("Error fetching reviews:", error);
     }
   };
-//   const fetchShipper = async () => {
-
-//     try {
-//       setLoading(true); // Start loading
-//       const response = await axios.post('http://localhost:3001/get-shipper', {companyName});
-//       setShipper(response.data);
-//       console.log(response.data)
-//     } catch (error) {
-//       console.error('Error fetching shipper information:', error);
-//     } finally {
-//       setLoading(false); // Stop loading
-//     }
-//   };
 
     const fetchShipper = async () => {
         try {
@@ -122,6 +109,8 @@ const handleReviewSubmit = async (e) => {
         const shipperData = response.data;
         setShipper(shipperData);
 
+        setDeliveryCities(shipperData[0].deliveryCities)
+
         // 2. Extract and store companyId
         const companyId = shipperData[0].completeUserData.userID;
 
@@ -131,30 +120,16 @@ const handleReviewSubmit = async (e) => {
         const ratesResponse = await axios.post('http://localhost:3001/get-rates', { companyId});
         setShipperRates(ratesResponse.data);
 
+        console.log(ratesResponse.data[0])
+
     
         // 4. Fetch lead times
         const leadTimesResponse = await axios.post('http://localhost:3001/get-leadTimes', { companyId});
-
-        console.log("this is the companyId we are passing: " , companyId)
+        setLeadTimes(leadTimesResponse.data);
 
         const companyReviewResponse = await axios.post('http://localhost:3001/get-reviews', { companyId });
 
-        
-
         setCompanyReviews(companyReviewResponse.data)
-
-        
-
-
-    
-        const leadTimesData = leadTimesResponse.data;
-        if (leadTimesData) {
-            setLeadTimes(leadTimesData);
-    
-        }
-
-        console.log(leadTimesData)
-
         
         } catch (error) {
         console.error("Error loading shipper profile:", error);
@@ -171,31 +146,29 @@ const handleReviewSubmit = async (e) => {
 
     fetchShipper();
 
-    fetchReviews(companyReviewId)
+    fetchReviews(localStorage.companyId)
 
 
   }, [companyReviewId]);
 
-  console.log(companyReviews)
-
   const formatReviewDate= (dateString) => {
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffInHours = Math.floor((now - date) / (1000 * 60 * 60));
-  
-  if (diffInHours < 24) {
-    return `Today ${date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
-  } else if (diffInHours < 48) {
-    return `Yesterday ${date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
-  } else {
-    return date.toLocaleDateString([], {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  }
-}
+      const date = new Date(dateString);
+      const now = new Date();
+      const diffInHours = Math.floor((now - date) / (1000 * 60 * 60));
+      
+      if (diffInHours < 24) {
+        return `Today ${date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+      } else if (diffInHours < 48) {
+        return `Yesterday ${date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+      } else {
+        return date.toLocaleDateString([], {
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      }
+    }
 
   return (
     <Container className="my-4">
@@ -216,8 +189,17 @@ const handleReviewSubmit = async (e) => {
       </Breadcrumb>
 
       <h2 className="mb-3">{companyName}</h2>
-      <p><strong>Location:</strong> {shipper[0].completeUserData.hqLocation}</p>
+      <p><strong>Location:</strong> {shipper[0].completeUserData.hqCity}, {shipper[0].completeUserData.hqCountry}</p>
       <p><strong>Contact:</strong> {shipper[0].completeUserData.email} | {shipper[0].completeUserData.phoneNumber}</p>
+
+      <p><strong>Cities we deliver to: </strong></p>
+                  {/* <div className="d-flex flex-wrap gap-2">
+                    {shipper[0].deliveryCities.map(city => (
+                      <Badge key={city} bg="primary" className="p-2">
+                        {city}
+                      </Badge>
+                    ))}
+                  </div> */}
 
       <Tabs activeKey={key} onSelect={(k) => setKey(k)} className="mb-3">
         <Tab eventKey="introduction" title="Introduction">
@@ -232,7 +214,7 @@ const handleReviewSubmit = async (e) => {
                 />
                 <Card.Body>
                     <Card.Text>
-                    {shipper[0].completeUserData.introduction}
+                    {shipper[0].introduction}
                     </Card.Text>
                 </Card.Body>
             </Card>
@@ -241,79 +223,134 @@ const handleReviewSubmit = async (e) => {
         <Tab eventKey="rates" title="Rates">
           <h5 className="mt-3">Sea Freight Rates</h5>
                 {/* Shipping Rates Card */}
-                {shipperRates.length > 0 && (
-                <>
-                <Card className="shadow-sm">
-                  <Card.Header className="d-flex justify-content-between align-items-center">
-                    <strong>Shipping Rates</strong>
-
-                  </Card.Header>
-                  <Card.Body>
-                    <Table bordered responsive>
-                      <thead>
-                        <tr>
-                          <th>Item</th>
-                          <th>Sea (RMB/$USD)</th>
-                          <th>Air (RMB/USD)</th>
-                          <th>Air Express (RMB/USD)</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td>General Goods (/kg)</td>
-                          <td>{rates.general.sea.RMB} / {rates.general.sea.USD}</td>
-                          <td>{rates.general.air.RMB} / {rates.general.air.USD}</td>
-                          <td>{rates.general.express.RMB} / {rates.general.express.USD}</td>
-                        </tr>
-                        <tr>
-                          <td>Phones (/pc)</td>
-                          <td>{rates.phones.sea.RMB} / {rates.phones.sea.USD}</td>
-                          <td>{rates.phones.air.RMB} / {rates.phones.air.USD}</td>
-                          <td>{rates.phones.express.RMB} / {rates.phones.express.USD}</td>
-                        </tr>
-                        <tr>
-                          <td>Laptops (/kg)</td>
-                          <td>{rates.laptops.sea.RMB} / {rates.laptops.sea.USD}</td>
-                          <td>{rates.laptops.air.RMB} / {rates.laptops.air.USD}</td>
-                          <td>{rates.laptops.express.RMB} / {rates.laptops.express.USD}</td>
-                        </tr>
-                        <tr>
-                          <td>Other Electronics (/kg)</td>
-                          <td>{rates.electronics.sea.RMB} / {rates.electronics.sea.USD}</td>
-                          <td>{rates.electronics.air.RMB} / {rates.electronics.air.USD}</td>
-                          <td>{rates.electronics.express.RMB} / {rates.electronics.express.USD}</td>
-                        </tr>
-                      </tbody>
-                    </Table>
-                  </Card.Body>
-                </Card>
-                </>
-              )}
+                {shipperRates.length > 0 ? (
+  <Card className="shadow-sm">
+    <Card.Header className="d-flex justify-content-between align-items-center">
+      <strong>Shipping Rates</strong>
+    </Card.Header>
+    <Card.Body>
+      <Table bordered responsive>
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Sea (RMB/$USD)</th>
+            <th>Air (RMB/USD)</th>
+            <th>Air Express (RMB/USD)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>General Goods (/kg)</td>
+            <td>
+              {shipperRates[0]?.rates?.general?.sea?.RMB || 'N/A'} / {shipperRates[0]?.rates?.general?.sea?.USD || 'N/A'}
+            </td>
+            <td>
+              {shipperRates[0]?.rates?.general?.air?.RMB || 'N/A'} / {shipperRates[0]?.rates?.general?.air?.USD || 'N/A'}
+            </td>
+            <td>
+              {shipperRates[0]?.rates?.general?.express?.RMB || 'N/A'} / {shipperRates[0]?.rates?.general?.express?.USD || 'N/A'}
+            </td>
+          </tr>
+          <tr>
+            <td>Phones (/pc)</td>
+            <td>
+              {shipperRates[0]?.rates?.phones?.sea?.RMB || 'N/A'} / {shipperRates[0]?.rates?.phones?.sea?.USD || 'N/A'}
+            </td>
+            <td>
+              {shipperRates[0]?.rates?.phones?.air?.RMB || 'N/A'} / {shipperRates[0]?.rates?.phones?.air?.USD || 'N/A'}
+            </td>
+            <td>
+              {shipperRates[0]?.rates?.phones?.express?.RMB || 'N/A'} / {shipperRates[0]?.rates?.phones?.express?.USD || 'N/A'}
+            </td>
+          </tr>
+          <tr>
+            <td>Laptops (/kg)</td>
+            <td>
+              {shipperRates[0]?.rates?.laptops?.sea?.RMB || 'N/A'} / {shipperRates[0]?.rates?.laptops?.sea?.USD || 'N/A'}
+            </td>
+            <td>
+              {shipperRates[0]?.rates?.laptops?.air?.RMB || 'N/A'} / {shipperRates[0]?.rates?.laptops?.air?.USD || 'N/A'}
+            </td>
+            <td>
+              {shipperRates[0]?.rates?.laptops?.express?.RMB || 'N/A'} / {shipperRates[0]?.rates?.laptops?.express?.USD || 'N/A'}
+            </td>
+          </tr>
+          <tr>
+            <td>Other Electronics (/kg)</td>
+            <td>
+              {shipperRates[0]?.rates?.electronics?.sea?.RMB || 'N/A'} / {shipperRates[0]?.rates?.electronics?.sea?.USD || 'N/A'}
+            </td>
+            <td>
+              {shipperRates[0]?.rates?.electronics?.air?.RMB || 'N/A'} / {shipperRates[0]?.rates?.electronics?.air?.USD || 'N/A'}
+            </td>
+            <td>
+              {shipperRates[0]?.rates?.electronics?.express?.RMB || 'N/A'} / {shipperRates[0]?.rates?.electronics?.express?.USD || 'N/A'}
+            </td>
+          </tr>
+        </tbody>
+      </Table>
+    </Card.Body>
+  </Card>
+) : (
+  <Card className="shadow-sm">
+    <Card.Body>
+      <div className="text-muted text-center">
+        This shipper hasn't set their rates yet.
+      </div>
+    </Card.Body>
+  </Card>
+)}
         </Tab>
 
         <Tab eventKey="leadTimes" title="Lead Times">
-            {leadTimes.length > 0 && (
+              {leadTimes.length > 0 ? (
                 <>
-                <Card className="shadow-sm mt-4">
+                  <Card className="shadow-sm mt-4">
                     <Card.Header className="d-flex justify-content-between align-items-center">
-                        <strong>Lead Times</strong>
+                      <strong>Lead Times</strong>
                     </Card.Header>
                     <Card.Body>
-                        <Row>
-                        <Col><strong>Sea:</strong> {leadTimes[0].leadTimes.sea}</Col>
-                        <Col><strong>Air:</strong> {leadTimes[0].leadTimes.air}</Col>
-                        <Col><strong>Air Express:</strong> {leadTimes[0].leadTimes.express}</Col>
-                        </Row>
+                      <Row>
+                        <Col>
+                          <strong>Sea:</strong> 
+                          {leadTimes[0].leadTimes.sea.value} {leadTimes[0].leadTimes.sea.unit}
+                        </Col>
+                        <Col>
+                          <strong>Air:</strong> 
+                          {typeof leadTimes[0].leadTimes.air === 'object' 
+                            ? `${leadTimes[0].leadTimes.air.value} ${leadTimes[0].leadTimes.air.unit}`
+                            : leadTimes[0].leadTimes.air}
+                        </Col>
+                        <Col>
+                          <strong>Air Express:</strong> 
+                          {typeof leadTimes[0].leadTimes.express === 'object' 
+                            ? `${leadTimes[0].leadTimes.express.value} ${leadTimes[0].leadTimes.express.unit || ''}`
+                            : leadTimes[0].leadTimes.express}
+                        </Col>
+                      </Row>
                     </Card.Body>
-                </Card>
+                  </Card>
                 </>
-                )}
+              ) : (
+                <Card className="shadow-sm mt-4">
+                  <Card.Body>
+                    <div className="text-muted text-center">
+                      No lead times set yet. Waiting for the shipper to set.
+                    </div>
+                  </Card.Body>
+                </Card>
+              )}
         </Tab>
 
         <Tab eventKey="reviews" title="Reviews">
           
         {token && (
-          <Button variant="primary" onClick={handleShow} className="mb-3">
+          <Button 
+            variant="primary" 
+            onClick={handleShow} 
+            className="mb-3"
+            disabled={!!localStorage.getItem('companyName')}
+          >
             Leave a Review
           </Button>
         )}

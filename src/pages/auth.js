@@ -16,7 +16,8 @@ const AuthPage = () => {
     gender: 'male',
     registrationDate: '',
     lastLoggedIn: '',
-    avatar: ''
+    avatar: '',
+    accountStatus: true
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');

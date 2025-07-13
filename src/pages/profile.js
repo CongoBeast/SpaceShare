@@ -15,6 +15,7 @@ const ProfilePage = () => {
   const [offerSellCount , setOfferSellCount] = useState(0)
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
   const [offerData, setOfferData] = useState({
     type: "buy",
     space: "",
@@ -95,8 +96,6 @@ const ProfilePage = () => {
       fetchUserData();
       }, []);
 
-  console.log(userData)
-
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -167,9 +166,34 @@ const ProfilePage = () => {
     setShowDeleteModal(false)
   };
 
-  const handleDelete = () => {
-    // Trigger delete user API call
+  const handleDelete = async() => {
+
+    const payload = {
+      filter: {
+        _id: userData._id  // For MongoDB Data API
+      },
+      update: {
+          accountStatus: false
+      }
+    };
+
+    try {
+      const res = await axios.post(`http://localhost:3001/delete-user`, payload);
+      setIsSaving(true);
+      console.log("Updated the user", res.data);
+    } catch (err) {
+      console.error("Error updating user: ", err);
+      alert("Failed to update");
+    } finally {
+
+
+      setIsSaving(false);
+      setShowDeleteModal(false)
+    }
+
   };
+
+  console.log(userData?.email)
 
   return (
   
@@ -192,9 +216,9 @@ const ProfilePage = () => {
             }}
           />
         </div>
-        <h5 className="h6 font-weight-bold text-dark mb-0">
-          {localStorage.user || "Guest User"}
-        </h5>
+        <h2 className="h3 font-weight-bold text-dark mb-0" style={{ fontSize: '2rem' }}>
+          Hello, {localStorage.user || "Guest User"}
+        </h2>
       </div>
 
       <div className="row mt-4">
@@ -264,7 +288,7 @@ const ProfilePage = () => {
 
                   <div>
                     <label for="goodsType">Goods type</label>
-                    <select id="goodsType" name="goodsType" class="form-control" value={offerData.type} onChange={handleInputChange}>
+                    <select id="goodsType" name="goodsType" class="form-control" value={offerData.goodsType} onChange={handleInputChange}>
                       <option value="phones">Phones</option>
                       <option value="laptops">Laptops</option>
                       <option value="other-electronics">Other Electronics</option>
@@ -434,7 +458,7 @@ const ProfilePage = () => {
                 <Form.Control
                   type="email"
                   name="email"
-                  value={formData.email}
+                  value={userData.email}
                   onChange={handleChange}
                   disabled={loading}
                 />
@@ -445,7 +469,7 @@ const ProfilePage = () => {
                 <Form.Control
                   type="tel"
                   name="phoneNumber"
-                  value={formData.phoneNumber}
+                  value={userData.phoneNumber}
                   onChange={handleChange}
                   disabled={loading}
                 />
@@ -456,7 +480,7 @@ const ProfilePage = () => {
                 <Form.Control
                   type="text"
                   name="weChatId"
-                  value={formData.weChatId}
+                  value={userData.weChatId}
                   onChange={handleChange}
                   disabled={loading}
                 />

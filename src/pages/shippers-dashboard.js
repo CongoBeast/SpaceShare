@@ -18,11 +18,12 @@ const ShipperDashboard = () => {
   const navigate = useNavigate();
   const [userInfo, setUserInfo] = useState({
     name: "James Banda",
-    phone: "+86 132 4567 8901",
+    phoneNumber: "+86 132 4567 8901",
     email: "james.banda@example.com",
     city: "Guangzhou",
     country: "China",
     avatar: "https://i.pravatar.cc/100?img=3",
+    companyName: "",
   });
 
   const [rates, setRates] = useState({
@@ -69,12 +70,18 @@ const ShipperDashboard = () => {
       setLoading(true);
       const response = await axios.post('http://localhost:3001/get-shipper', { companyName });
       const shipperData = response.data;
-      
-      console.log(shipperData)
 
       setShipper(shipperData);
 
-      setDeliveryCities(shipperData[0].deliveryCities)
+      setDeliveryCities(shipperData[0].deliveryCities);
+
+      setUserInfo({
+      companyName: shipperData[0].completeUserData.companyName || '',
+      phoneNumber: shipperData[0].completeUserData.phoneNumber || '',
+      email: shipperData[0].completeUserData.email || '',
+      city: shipperData[0].completeUserData.hqCity || '',
+      country: shipperData[0].completeUserData.hqCountry || '',
+    });
 
       return shipperData; // 🔁 return the data here
     } catch (error) {
@@ -85,13 +92,20 @@ const ShipperDashboard = () => {
     }
   };
 
-  const handleSaveLeadTimes = async () => {
+  const handleSaveLeadTimes = async (e) => {
+
+    e.preventDefault();
+
     setIsSaving(true);
   
     console.log("This is the lead time input" , leadTimeInputs)
+
+    console.log(e)
   
     // const isUpdate = !!leadTimes[0]._id; // if you have the ID, you're updating
+
     const isUpdate = leadTimes.length > 0 && !!leadTimes[0]?._id;
+
   
     const payload = {
       // _id: leadTimes[0]._id, // set this if updating
@@ -122,12 +136,17 @@ const ShipperDashboard = () => {
   
   const handleSaveRates = async () => {
     setIsSaving(true);
-  
-    const isUpdate = !!shipperRates[0]._id; // if you have the ID, you're updating
 
-    console.log(isUpdate)
-    console.log(shipperRates[0]._id)
+    var isUpdate = false 
+    
+    if(shipperRates.length > 0){
+      // isUpdate = !!shipperRates[0]._id; // if you have the ID, you're updating
+      isUpdate = true; // if you have the ID, you're updating
 
+    }
+    else{
+      isUpdate = false
+    }
   
     const payload = {
       ...(isUpdate && { _id: shipperRates[0]._id }),
@@ -153,6 +172,9 @@ const ShipperDashboard = () => {
   };
 
   const saveSelectedCities = async (savedCities) => {
+
+    console.log(savedCities)
+
     const isUpdate = !!shipper[0].deliveryCities;
 
     const payload = {
@@ -167,7 +189,7 @@ const ShipperDashboard = () => {
     try {
       const res = await axios.post(`http://localhost:3001/update-shipper`, payload);
       setIsSaving(true);
-      console.log("Updated the shipper", res.data);
+      console.log("Updated the shipper with cities", res.data);
       setShowCitiesModal(false);
     } catch (err) {
       console.error("Error updating shipper: ", err);
@@ -204,12 +226,8 @@ const ShipperDashboard = () => {
         if (data && !isEqual(leadTimes, data)) {
           setLeadTimes(data);
 
-        const parsedInputs = {};
-        Object.keys(data).forEach((mode) => {
-          const [value, unit] = data[mode].split(" ");
-          parsedInputs[mode] = { value, unit };
-        });
-        setLeadTimeInputs(parsedInputs);
+        
+        setLeadTimeInputs(data);
         }
       } catch (error) {
         console.error("Error fetching lead times:", error);
@@ -243,9 +261,9 @@ const ShipperDashboard = () => {
 
 
 
-    const handleShipperProfile = (companyName) => {
+    const handleShipperProfile = () => {
     // console.log("navigate button clicked")
-    navigate(`/shipper-profile/${companyName}`)
+    navigate(`/shipper-profile/${localStorage.companyName}`)
   }
 
   const handleSaveIntroduction = async () => {
@@ -268,7 +286,7 @@ const ShipperDashboard = () => {
     // Update local state
     setShipper(prev => {
       const updated = [...prev];
-      updated[0].completeUserData.introduction = introductionText;
+      updated[0].introduction = introductionText;
       return updated;
     });
     
@@ -281,6 +299,55 @@ const ShipperDashboard = () => {
     setShowIntroductionModal(false)
   }
 };
+
+  const handleSaveUserInfo = async () => {
+    setIsSaving(true);
+    
+    try {
+      const payload = {
+        filter: {
+          _id: shipper[0]._id
+        },
+        update: {
+          "completeUserData.companyName": userInfo.companyName,
+          "completeUserData.phoneNumber": userInfo.phoneNumber,
+          "completeUserData.email": userInfo.email,
+          "completeUserData.hqCity": userInfo.city,
+          "completeUserData.hqCountry": userInfo.country,
+        }
+      };
+
+      console.log(payload)
+
+      const res = await axios.post('http://localhost:3001/update-shipper', payload);
+      console.log("User info updated:", res.data);
+      
+      // Update local state to match your nested structure
+      setShipper(prev => {
+        const updated = [...prev];
+        updated[0] = {
+          ...updated[0],
+          completeUserData: {
+            ...updated[0].completeUserData,
+            companyName: userInfo.companyName,
+            phoneNumber: userInfo.phoneNumber,
+            email: userInfo.email,
+            hqCity: userInfo.hqCity,
+            hqCountry: userInfo.hqCountry
+          },
+          introduction: userInfo.introduction
+        };
+        return updated;
+      });
+      
+      setShowInfoModal(false);
+    } catch (err) {
+      console.error("Error updating user info:", err);
+      alert("Failed to update user info. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
 
   // Handler for image selection
@@ -335,7 +402,6 @@ const ShipperDashboard = () => {
     }
   };
 
-
   return (
     <Container className="mt-4">
       {/* Greeting */}
@@ -343,68 +409,67 @@ const ShipperDashboard = () => {
       {!loading && shipper && shipper[0] && shipper[0].completeUserData && (
             <>
                 <Row className="align-items-center mb-4">
-                <Col md="auto">
-                    <Image
-                    src={shipper[0].completeUserData.avatar}
-                    roundedCircle
-                    width={200}
-                    height={200}
-                    alt="avatar"
-                    />
-                </Col>
-                <Col>
-                    <h4 className="mb-0">
-                      Welcome, {shipper[0].completeUserData.companyName}!
-                    </h4>
-                    <div className="text-muted">
-                      Manage your shipping profile and rates
-                    </div>
+                  <Col md="auto">
+                      <Image
+                      src={shipper[0].completeUserData.avatar}
+                      roundedCircle
+                      width={200}
+                      height={200}
+                      alt="avatar"
+                      />
+                  </Col>
+                  <Col>
+                      <h4 className="mb-0">
+                        Welcome, {shipper[0].completeUserData.companyName}!
+                      </h4>
+                      <div className="text-muted">
+                        Manage your shipping profile and rates
+                      </div>
 
-                    <Button 
-                      variant="outline-secondary" 
-                      onClick={() => setShowProfilePicModal(true)}
-                      className="mt-2"
-                    >
-                      Change Profile Picture
-                    </Button>
-
-                </Col>
+                      <Button 
+                        variant="outline-secondary" 
+                        onClick={() => setShowProfilePicModal(true)}
+                        className="mt-2"
+                      >
+                        Change Profile Picture
+                      </Button>
+                  </Col>
                 </Row>
 
                 
                 <Card className="mb-4 shadow-sm">
-                <Card.Header className="d-flex justify-content-between align-items-center">
-                    <strong>Basic Information</strong>
-                    <Button size="sm" onClick={() => setShowInfoModal(true)}>Edit Info</Button>
-                </Card.Header>
-                <Card.Body>
-                    <Row>
-                    <Col><strong>Name:</strong> {shipper[0].completeUserData.companyName}</Col>
-                    <Col><strong>Phone:</strong> {shipper[0].completeUserData.phoneNumber}</Col>
-                    </Row>
-                    <Row className="mt-2">
-                    <Col><strong>Email:</strong> {shipper[0].completeUserData.email}</Col>
-                    <Col><strong>HQ:</strong> {shipper[0].completeUserData.hqLocation}</Col>
-                    </Row>
-                    <Row className="mt-2">
-                    <Col><strong>Introduction:</strong> {shipper[0].completeUserData.introduction}</Col>
-                    </Row>
-                </Card.Body>
+                  <Card.Header className="d-flex justify-content-between align-items-center">
+                      <strong>Basic Information</strong>
+                      <Button size="sm" onClick={() => setShowInfoModal(true)}>Edit Info</Button>
+                  </Card.Header>
+                      <Card.Body>
+                          <Row>
+                          <Col><strong>Name:</strong> {shipper[0].completeUserData.companyName}</Col>
+                          <Col><strong>Phone:</strong> {shipper[0].completeUserData.phoneNumber}</Col>
+                          </Row>
+                          <Row className="mt-2">
+                          <Col><strong>Email:</strong> {shipper[0].completeUserData.email}</Col>
+                          <Col><strong>HQ:</strong> {shipper[0].completeUserData.hqCity}, {shipper[0].completeUserData.hqCountry}</Col>
+                          </Row>
+                          {/* <Row className="mt-2">
+                          <Col><strong>Introduction:</strong> {shipper[0].introduction}</Col>
+                          </Row> */}
+                      </Card.Body>
                 </Card>
             </>
             )}
  
       {/* {shipper[0].completeUserData.introduction ? ( */}
-      {!loading && shipper[0].completeUserData.introduction ? (
+      {!loading && shipper[0].introduction ? (
             <>    
                 <Card className="mb-4 shadow-sm">
                 <Card.Header className="d-flex justify-content-between align-items-center">
                     <strong>Basic Introduction</strong>
-                    <Button size="sm" onClick={() => setShowInfoModal(true)}>Edit Intro</Button>
+                    <Button size="sm" onClick={() => setShowIntroductionModal(true)}>Edit Intro</Button>
                 </Card.Header>
                 <Card.Body>
                     <Row className="mt-2">
-                    <Col><strong>Introduction:</strong> {shipper[0].completeUserData.introduction}</Col>
+                    <Col>{shipper[0].introduction}</Col>
                     </Row>
                 </Card.Body>
                 </Card>
@@ -428,7 +493,7 @@ const ShipperDashboard = () => {
           </Card.Header>
           <Card.Body>
             <div className="d-flex flex-wrap gap-2">
-              {deliveryCities.map(city => (
+              {shipper[0].deliveryCities.map(city => (
                 <Badge key={city} bg="primary" className="p-2">
                   {city}
                 </Badge>
@@ -504,7 +569,7 @@ const ShipperDashboard = () => {
     
      {!loading && leadTimes.length > 0 ? (
       <>
-      <Card className="shadow-sm mt-4">
+      <Card className="shadow-sm mt-4 mb-5">
         <Card.Header className="d-flex justify-content-between align-items-center">
             <strong>Lead Times</strong>
             <Button size="sm" onClick={() => setShowLeadTimesModal(true)}>Edit Lead Times</Button>
@@ -519,16 +584,17 @@ const ShipperDashboard = () => {
     </Card>
     </>
     ): (
-    <Alert variant="warning" className="d-flex justify-content-between align-items-center">
+    <Alert variant="warning" className="d-flex justify-content-between align-items-center  mt-4">
       <span>No lead times set for your company yet.</span>
       <Button size="sm" variant="primary" onClick={() => setShowLeadTimesModal(true)}>
+      {/* <Button size="sm" variant="primary" onClick={() => console.log(leadTimeInputs)}> */}
         Lead Times
       </Button>
     </Alert>
     )} 
 
     {/* {!loading && (
-    <Button size="lg" variant='primary' onClick={handleShipperProfile(shipper[0].completeUserData.companyName)}>
+    <Button size="lg" variant='primary' onClick={handleShipperProfile}>
       View Company Profile
     </Button>
     )} */}
@@ -544,35 +610,35 @@ const ShipperDashboard = () => {
             <Form.Group>
               <Form.Label>Name</Form.Label>
               <Form.Control
-                value={shipper[0].completeUserData.companyName}
+                value={userInfo.companyName}
                 onChange={(e) => setUserInfo({ ...userInfo, name: e.target.value })}
               />
             </Form.Group>
             <Form.Group>
               <Form.Label>Phone</Form.Label>
               <Form.Control
-                value={shipper[0].completeUserData.phoneNumber}
+                value={userInfo.phoneNumber}
                 onChange={(e) => setUserInfo({ ...userInfo, phone: e.target.value })}
               />
             </Form.Group>
             <Form.Group>
               <Form.Label>Email</Form.Label>
               <Form.Control
-                value={shipper[0].completeUserData.email}
+                value={userInfo.email}
                 onChange={(e) => setUserInfo({ ...userInfo, email: e.target.value })}
               />
             </Form.Group>
             <Form.Group>
               <Form.Label>City</Form.Label>
               <Form.Control
-                value={shipper[0].completeUserData.hqCity}
+                value={userInfo.city}
                 onChange={(e) => setUserInfo({ ...userInfo, city: e.target.value })}
               />
             </Form.Group>
             <Form.Group>
               <Form.Label>Country</Form.Label>
               <Form.Control
-                value={shipper[0].completeUserData.hqCountry}
+                value={userInfo.country}
                 onChange={(e) => setUserInfo({ ...userInfo, country: e.target.value })}
               />
             </Form.Group>
@@ -590,7 +656,9 @@ const ShipperDashboard = () => {
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowInfoModal(false)}>Cancel</Button>
-          <Button variant="primary" onClick={() => setShowInfoModal(false)}>Save</Button>
+          <Button variant="primary" onClick={handleSaveUserInfo}
+            >Save
+          </Button>
         </Modal.Footer>
       </Modal>
       )}
@@ -671,7 +739,7 @@ const ShipperDashboard = () => {
         </Modal.Footer>
       </Modal>
 
-      <Modal show={showLeadTimesModal} onHide={() => setShowLeadTimesModal(false)} centered>
+      {/* <Modal show={showLeadTimesModal} onHide={() => setShowLeadTimesModal(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>Edit Lead Times</Modal.Title>
         </Modal.Header>
@@ -726,11 +794,76 @@ const ShipperDashboard = () => {
           <Button variant="secondary" onClick={() => setShowLeadTimesModal(false)}>
             Cancel
           </Button>
-          <Button variant="primary" onClick={handleSaveLeadTimes} disabled={isSaving}>
+          <Button variant="primary"
+          //  onClick={handleSaveLeadTimes}
+          onClick={(e) => handleSaveLeadTimes(e)}  
+          disabled={isSaving}>
             {isSaving ? "Saving..." : "Save"}
           </Button>
         </Modal.Footer>
-      </Modal> 
+      </Modal>  */}
+      <Modal show={showLeadTimesModal} onHide={() => setShowLeadTimesModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Edit Lead Times</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            {["sea", "air", "express"].map((mode) => (
+              <Form.Group key={mode} className="mb-3">
+                <Form.Label className="text-capitalize">{mode} Shipping</Form.Label>
+                <div className="d-flex align-items-center">
+                  <Form.Control
+                    type="number"
+                    min="1"
+                    value={leadTimeInputs[mode]?.value || ''}
+                     // Use actual state
+                    onChange={(e) =>
+                      setLeadTimeInputs((prev) => ({
+                        ...prev,
+                        [mode]: {
+                          ...prev[mode],
+                          value: e.target.value,
+                        },
+                      }))
+                    }
+                    className="me-2"
+                    style={{ maxWidth: "100px" }}
+                  />
+                  <Form.Select
+                    value={leadTimeInputs[mode]?.unit || 'days'}  // Use actual state
+                    onChange={(e) =>
+                      setLeadTimeInputs((prev) => ({
+                        ...prev,
+                        [mode]: {
+                          ...prev[mode],
+                          unit: e.target.value,
+                        },
+                      }))
+                    }
+                    style={{ maxWidth: "150px" }}
+                  >
+                    <option value="days">days</option>
+                    <option value="weeks">weeks</option>
+                    <option value="months">months</option>
+                  </Form.Select>
+                </div>
+              </Form.Group>
+            ))}
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowLeadTimesModal(false)}>
+            Cancel
+          </Button>
+          <Button 
+            variant="primary"
+            onClick={handleSaveLeadTimes}  // No need for arrow function
+            disabled={isSaving}
+          >
+            {isSaving ? "Saving..." : "Save"}
+          </Button>
+        </Modal.Footer>
+      </Modal>
 
       <Modal show={showIntroductionModal} onHide={() => setShowIntroductionModal(false)} size="lg">
         <Modal.Header closeButton>
@@ -832,6 +965,35 @@ const ShipperDashboard = () => {
         </Modal.Footer>
       </Modal>
 
+       {/* City Selection Modal */}
+      <Modal show={showCitiesModal} onHide={() => setShowCitiesModal(false)} size="lg">
+        <Modal.Header closeButton>
+          <Modal.Title>Select African Delivery Cities</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <CitySelector 
+            selectedCities={deliveryCities} 
+            setSelectedCities={setDeliveryCities} 
+          />
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowCitiesModal(false)}>
+            Cancel
+          </Button>
+          <Button 
+            variant="primary" 
+            onClick={() => {
+              // You might want to save to your backend here
+              saveSelectedCities(deliveryCities)
+              setShowCitiesModal(false);
+            }}
+
+            disabled={isSaving}
+          >
+            Save Cities
+          </Button>
+        </Modal.Footer>
+      </Modal>
 
     </Container>
   );
