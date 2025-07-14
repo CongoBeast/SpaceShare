@@ -1,5 +1,6 @@
 import logo from './logo.svg';
-import {BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
+// import {BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
+import {HashRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
 import './App.css';
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
