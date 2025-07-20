@@ -51,6 +51,7 @@ const ShipperDashboard = () => {
   const [showCitiesModal, setShowCitiesModal] = useState(false);
 
   const [showIntroductionModal, setShowIntroductionModal] = useState(false);
+  const [showShippingAddressModal, setShippingAddressModal] = useState(false);
 
   const [showProfilePicModal, setShowProfilePicModal] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
@@ -61,6 +62,10 @@ const ShipperDashboard = () => {
 
   const [introductionText, setIntroductionText] = useState(
     shipper[0]?.completeUserData?.introduction || ""
+  );
+
+  const [shippingAddress, setShippingAddress] = useState(
+    shipper[0]?.completeUserData?.shippingAddress || ""
   );
 
   const fetchShipper = async () => {
@@ -300,6 +305,40 @@ const ShipperDashboard = () => {
   }
 };
 
+  const handleSaveShippingAddress = async () => {
+  setIsSaving(true);
+  
+  try {
+
+    const payload = {
+      filter: {
+        _id: shipper[0]._id  // For MongoDB Data API
+      },
+      update: {
+          shippingAddress: shippingAddress
+      }
+    };
+
+    const res = await axios.post('https://spaceshare-backend.onrender.com/update-shipper', payload);
+    console.log("Shipping address updated:", res.data);
+    
+    // Update local state
+    setShipper(prev => {
+      const updated = [...prev];
+      updated[0].shippingAddress = shippingAddress;
+      return updated;
+    });
+    
+    setShippingAddressModal(false);
+  } catch (err) {
+    console.error("Error updating shipping address:", err);
+    alert("Failed to update shipping address. Please try again.");
+  } finally {
+    setIsSaving(false);
+    setShippingAddressModal(false)
+  }
+};
+
   const handleSaveUserInfo = async () => {
     setIsSaving(true);
     
@@ -479,6 +518,29 @@ const ShipperDashboard = () => {
         <span>No company introduction set yet.</span>
         <Button size="sm" variant="primary" onClick={() => setShowIntroductionModal(true)}>
           Set Introduction
+        </Button>
+      </Alert>
+    )}
+
+    {!loading && shipper[0].shippingAddress ? (
+            <>    
+                <Card className="mb-4 shadow-sm">
+                <Card.Header className="d-flex justify-content-between align-items-center">
+                    <strong>Shipping Address</strong>
+                    <Button size="sm" onClick={() => setShippingAddressModal(true)}>Edit Intro</Button>
+                </Card.Header>
+                <Card.Body>
+                    <Row className="mt-2">
+                    <Col>{shipper[0].shippingAddress}</Col>
+                    </Row>
+                </Card.Body>
+                </Card>
+            </>
+            ) : (
+      <Alert variant="warning" className="d-flex justify-content-between align-items-center">
+        <span>No company shipping address set yet.</span>
+        <Button size="sm" variant="primary" onClick={() => setShippingAddressModal(true)}>
+          Set Shipping Address
         </Button>
       </Alert>
     )}
@@ -865,6 +927,7 @@ const ShipperDashboard = () => {
         </Modal.Footer>
       </Modal>
 
+      {/* Edit introduction modal */}
       <Modal show={showIntroductionModal} onHide={() => setShowIntroductionModal(false)} size="lg">
         <Modal.Header closeButton>
           <Modal.Title>Edit Company Introduction</Modal.Title>
@@ -909,6 +972,50 @@ const ShipperDashboard = () => {
         </Modal.Footer>
       </Modal>
 
+      {/* Edit shipping modal */}
+      <Modal show={showShippingAddressModal} onHide={() => setShippingAddressModal(false)} size="lg">
+        <Modal.Header closeButton>
+          <Modal.Title>Edit Company Shipping Address</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form.Group controlId="companyIntroduction">
+            <Form.Label>Shipping Address</Form.Label>
+            <Form.Control
+              as="textarea"
+              rows={6}
+              value={shippingAddress}
+              onChange={(e) => setShippingAddress(e.target.value)}
+              placeholder="This is where users will send their goods for you to recieve them even chinese is ok..."
+            />
+            <Form.Text className="text-muted">
+              This is where users will send their goods for you to recieve them (500 characters max)
+            </Form.Text>
+          </Form.Group>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button 
+            variant="secondary" 
+            onClick={() => setShippingAddressModal(false)}
+            disabled={isSaving}
+          >
+            Cancel
+          </Button>
+          <Button 
+            variant="primary" 
+            onClick={handleSaveShippingAddress}
+            disabled={isSaving || !shippingAddress.trim()}
+          >
+            {isSaving ? (
+              <>
+                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                Saving...
+              </>
+            ) : (
+              "Save Introduction"
+            )}
+          </Button>
+        </Modal.Footer>
+      </Modal>
 
       {/* Profile Picture Modal */}
       <Modal show={showProfilePicModal} onHide={() => setShowProfilePicModal(false)} centered>

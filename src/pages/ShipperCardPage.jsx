@@ -120,8 +120,6 @@ const ShipperCardPage = () => {
           setIsSending(false);
           setTimeout(() => setToastMessage(null), 3000);
         });
-
-
   };
 
   useEffect(() => {

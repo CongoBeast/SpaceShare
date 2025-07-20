@@ -17,6 +17,7 @@ const AuthPage = () => {
     registrationDate: '',
     lastLoggedIn: '',
     avatar: '',
+    shippingAddress: '',
     accountStatus: true
   });
   const [loading, setLoading] = useState(false);

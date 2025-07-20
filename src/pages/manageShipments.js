@@ -20,11 +20,12 @@ const ManageShipments = () => {
   const [shipmentForm, setShipmentForm] = useState({
     shipperID: '',
     transportMode: '',
-    clientsCount: '',
+    clientsCount: 0,
     status: '',
     currentLocation: '',
     departureDate: '',
-    eta: ''
+    eta: '',
+    timestamps: []
     });
 
   const [editingShipment, setEditingShipment] = useState(null);
@@ -36,6 +37,18 @@ const ManageShipments = () => {
         delivered: 0,
         pending: 0
       })
+
+  const [showTrackingModal, setShowTrackingModal] = useState(false);
+  const [currentTrackingShipment, setCurrentTrackingShipment] = useState(null);
+  const [trackingUpdate, setTrackingUpdate] = useState({
+    location: '',
+    status: '',
+    eta: '',
+    notes: ''
+  });
+
+  const [showTrackingHistoryModal, setShowTrackingHistoryModal] = useState(false);
+  const [selectedShipment, setSelectedShipment] = useState(null);
 
 
   // Stats data
@@ -70,43 +83,110 @@ const ManageShipments = () => {
     setShowAddShipment(true);
     };
 
-   const handleSaveShipment = async () => {
-        // Validate form
-        if (!shipmentForm.transportMode || !shipmentForm.clientsCount || 
-            !shipmentForm.status || !shipmentForm.currentLocation || 
-            !shipmentForm.departureDate || !shipmentForm.eta) {
-            alert('Please fill all required fields');
-            return;
-        }
+  //  const handleSaveShipment = async () => {
+  //       // Validate form
+  //       if (!shipmentForm.transportMode || !shipmentForm.clientsCount || 
+  //           !shipmentForm.status || !shipmentForm.currentLocation || 
+  //           !shipmentForm.departureDate || !shipmentForm.eta) {
+  //           alert('Please fill all required fields');
+  //           return;
+  //       }
 
-        try {
-            // Generate shipping ID (using the function we created)
-            const shipperID = generateShippingID();
+  //       try {
+  //           // Generate shipping ID (using the function we created)
+  //           const shipperID = generateShippingID();
             
-            // Prepare the shipment data
-            const shipmentData = {
+  //           // Prepare the shipment data
+  //           const shipmentData = {
+  //           ...shipmentForm,
+  //           shipperID, // Use the generated ID
+  //           createdAt: new Date().toISOString(),
+  //           updatedAt: new Date().toISOString(),
+  //           companyId: localStorage.companyId
+  //           };
+
+  //           // Remove the local ID if it exists (since MongoDB will generate its own _id)
+  //           delete shipmentData.id;
+
+  //           // Send to backend
+  //           const response = await axios.post('https://spaceshare-backend.onrender.com/set-shipment', shipmentData);
+
+  //           if (response.data && response.data.insertedId) {
+  //           // Update local state with the new shipment (including MongoDB _id)
+  //           setShipments([...shipments, { ...shipmentData, _id: response.data.insertedId }]);
+            
+  //           // Reset and close
+  //           setShipmentForm({
+  //               shipperID: '',
+  //               transportMode: '',
+  //               clientsCount: 0,
+  //               status: '',
+  //               currentLocation: '',
+  //               departureDate: '',
+  //               eta: ''
+  //           });
+  //           setShowAddShipment(false);
+            
+  //           // Show success message
+  //           alert('Shipment saved successfully!');
+  //           }
+  //       } catch (error) {
+  //           console.error('Error saving shipment:', error);
+  //           alert('Failed to save shipment. Please try again.');
+  //       }
+  //       };
+
+    const handleSaveShipment = async () => {
+      // Validate form
+      if (!shipmentForm.transportMode || !shipmentForm.clientsCount || 
+          !shipmentForm.status || !shipmentForm.currentLocation || 
+          !shipmentForm.departureDate || !shipmentForm.eta) {
+          alert('Please fill all required fields');
+          return;
+      }
+
+      try {
+          // Generate shipping ID
+          const shipperID = generateShippingID();
+          
+          // Create initial timestamp
+          const initialTimestamp = {
+            date: new Date().toISOString(),
+            location: shipmentForm.currentLocation,
+            status: shipmentForm.status,
+            eta: shipmentForm.eta,
+            notes: 'Shipment created',
+            updatedBy: localStorage.userName || 'Admin'
+          };
+
+          // Prepare the shipment data with initial timestamp
+          const shipmentData = {
             ...shipmentForm,
-            shipperID, // Use the generated ID
+            shipperID,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
-            companyId: localStorage.companyId
-            };
+            companyId: localStorage.companyId,
+            timestamps: [initialTimestamp] // Initialize with first timestamp
+          };
 
-            // Remove the local ID if it exists (since MongoDB will generate its own _id)
-            delete shipmentData.id;
+          // Remove the local ID if it exists
+          delete shipmentData.id;
 
-            // Send to backend
-            const response = await axios.post('https://spaceshare-backend.onrender.com/set-shipment', shipmentData);
+          // Send to backend
+          const response = await axios.post('https://spaceshare-backend.onrender.com/set-shipment', shipmentData);
 
-            if (response.data && response.data.insertedId) {
+          if (response.data && response.data.insertedId) {
             // Update local state with the new shipment (including MongoDB _id)
-            setShipments([...shipments, { ...shipmentData, _id: response.data.insertedId }]);
+            setShipments([...shipments, { 
+              ...shipmentData, 
+              _id: response.data.insertedId 
+            }]);
             
             // Reset and close
             setShipmentForm({
                 shipperID: '',
                 transportMode: '',
-                clientsCount: '',
+                clientsCount: 0,
                 status: '',
                 currentLocation: '',
                 departureDate: '',
@@ -115,13 +195,93 @@ const ManageShipments = () => {
             setShowAddShipment(false);
             
             // Show success message
-            alert('Shipment saved successfully!');
-            }
-        } catch (error) {
-            console.error('Error saving shipment:', error);
-            alert('Failed to save shipment. Please try again.');
+            alert('Shipment saved successfully with initial tracking record!');
+          }
+      } catch (error) {
+          console.error('Error saving shipment:', error);
+          alert('Failed to save shipment. Please try again.');
+      }
+    };
+    
+    const handleOpenTrackingModal = (shipment) => {
+        setCurrentTrackingShipment(shipment);
+        setTrackingUpdate({
+          location: shipment.currentLocation,
+          status: shipment.status,
+          eta: shipment.eta,
+          notes: ''
+        });
+        setShowTrackingModal(true);
+      };
+
+      const handleTrackingUpdate = async () => {
+        if (!trackingUpdate.location || !trackingUpdate.status) {
+          alert('Please fill in at least location and status');
+          return;
         }
-        };
+
+        try {
+          // Create the timestamp object
+          const timestamp = {
+            date: new Date().toISOString(),
+            location: trackingUpdate.location,
+            status: trackingUpdate.status,
+            eta: trackingUpdate.eta,
+            notes: trackingUpdate.notes,
+            updatedBy: localStorage.userName || 'Admin' // Assuming you store user info
+          };
+
+          // Prepare the update data for the backend
+          const updateData = {
+            filter: {
+              _id: currentTrackingShipment._id
+            },
+            update: {
+              currentLocation: trackingUpdate.location,
+              status: trackingUpdate.status,
+              eta: trackingUpdate.eta,
+              // $push the new timestamp to the timestamps array
+              timestamps: timestamp
+            }
+          };
+
+          // Send to backend
+          const response = await axios.post('https://spaceshare-backend.onrender.com/update-shipments', updateData);
+
+          console.log(response.data)
+
+          if (response.data) {
+            // Update local state by adding the new timestamp
+            setShipments(shipments.map(ship => {
+              if (ship._id === currentTrackingShipment._id) {
+                return {
+                  ...ship,
+                  currentLocation: trackingUpdate.location,
+                  status: trackingUpdate.status,
+                  eta: trackingUpdate.eta,
+                  timestamps: [...(ship.timestamps || []), timestamp]
+                };
+              }
+              return ship;
+            }));
+            
+            // Close modal and reset
+            setShowTrackingModal(false);
+            setCurrentTrackingShipment(null);
+            setTrackingUpdate({
+              location: '',
+              status: '',
+              eta: '',
+              notes: ''
+            });
+            
+            alert('Tracking update saved successfully!');
+          }
+        } catch (error) {
+          console.error('Error saving tracking update:', error);
+          alert('Failed to save tracking update. Please try again.');
+        }
+      };
 
      const handleAddAnnouncement = async () => {
         // Validate form
@@ -163,28 +323,32 @@ const ManageShipments = () => {
         }
         };
 
+      const handleShowTrackingHistory = (shipment) => {
+        setSelectedShipment(shipment);
+        setShowTrackingHistoryModal(true);
+      };
 
-  const generateShippingID = () => {
-    // Get company name from localStorage (fallback to 'COM' if not available)
-    const companyPrefix = localStorage.companyName 
-        ? localStorage.companyName.slice(0, 3).toUpperCase() 
-        : 'COM';
+      const generateShippingID = () => {
+        // Get company name from localStorage (fallback to 'COM' if not available)
+        const companyPrefix = localStorage.companyName 
+            ? localStorage.companyName.slice(0, 3).toUpperCase() 
+            : 'COM';
 
-    // Get current date components
-    const now = new Date();
-    const day = String(now.getDate()).padStart(2, '0');
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const dateCode = `${day}${month}`; // DDMM format
+        // Get current date components
+        const now = new Date();
+        const day = String(now.getDate()).padStart(2, '0');
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const dateCode = `${day}${month}`; // DDMM format
 
-    // Generate random 3-character alphanumeric code
-    const randomChars = Math.random().toString(36).slice(2, 5).toUpperCase();
+        // Generate random 3-character alphanumeric code
+        const randomChars = Math.random().toString(36).slice(2, 5).toUpperCase();
 
-    // Combine all parts to make 9-character code
-    const shippingID = `${companyPrefix}${dateCode}${randomChars}`;
+        // Combine all parts to make 9-character code
+        const shippingID = `${companyPrefix}${dateCode}${randomChars}`;
 
-    // Ensure exactly 9 characters (in case company prefix was shorter)
-    return shippingID.slice(0, 9).padEnd(9, 'X'); // Pad with X if needed
-    }
+        // Ensure exactly 9 characters (in case company prefix was shorter)
+        return shippingID.slice(0, 9).padEnd(9, 'X'); // Pad with X if needed
+        }
 
     const fetchShipments = async (companyId) => {
         try {
@@ -325,8 +489,8 @@ const ManageShipments = () => {
                 <th>Shipper ID</th>
                 <th>Transport Mode</th>
                 <th>Clients</th>
-                <th>Status</th>
                 <th>Current Location</th>
+                <th>Status</th>
                 <th>Departure Date</th>
                 <th>ETA</th>
                 <th>Actions</th>
@@ -335,7 +499,16 @@ const ManageShipments = () => {
             <tbody>
               {shipments.map((shipment) => (
                 <tr key={shipment._id}>
-                  <td>{shipment.shipperID}</td>
+                  {/* <td>{shipment.shipperID}</td> */}
+                  <td>
+                    <Button 
+                      variant="link" 
+                      onClick={() => handleShowTrackingHistory(shipment)}
+                      style={{ padding: 0, border: 0 }}
+                    >
+                      {shipment.shipperID}
+                    </Button>
+                  </td>
                   <td>{shipment.transportMode}</td>
                   <td>{shipment.clientsCount}</td>
                   <td>{shipment.currentLocation}</td>
@@ -351,7 +524,7 @@ const ManageShipments = () => {
                         variant="outline-primary" 
                         size="sm" 
                         className="me-2"
-                        onClick={() => handleEdit(shipment)}
+                        onClick={() => handleOpenTrackingModal(shipment)}
                         >
                         <FaEdit />
                     </Button>
@@ -428,108 +601,340 @@ const ManageShipments = () => {
 
       {/* Add Shipment Modal (Placeholder) */}
         <Modal show={showAddShipment} onHide={() => setShowAddShipment(false)} size="lg">
-        <Modal.Header closeButton>
-            <Modal.Title>{editingShipment ? 'Edit Shipment' : 'Add New Shipment'}</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-            <Form>
-            <Row>
-                <Col md={6}>
-                <Form.Group className="mb-3" controlId="formTransportMode">
-                    <Form.Label>Transport Mode</Form.Label>
-                    <Form.Control
-                    as="select"
-                    value={shipmentForm.transportMode}
-                    onChange={(e) => setShipmentForm({...shipmentForm, transportMode: e.target.value})}
-                    required
-                    >
-                    <option value="">Select Transport Mode</option>
-                    <option value="Express">Air Express</option>
-                    <option value="Air">Air</option>
-                    <option value="Sea">Sea</option>
-                    </Form.Control>
-                </Form.Group>
-                </Col>
-            </Row>
+            <Modal.Header closeButton>
+                <Modal.Title>{editingShipment ? 'Edit Shipment' : 'Add New Shipment'}</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+                <Form>
+                <Row>
+                    <Col md={6}>
+                    <Form.Group className="mb-3" controlId="formTransportMode">
+                        <Form.Label>Transport Mode</Form.Label>
+                        <Form.Control
+                        as="select"
+                        value={shipmentForm.transportMode}
+                        onChange={(e) => setShipmentForm({...shipmentForm, transportMode: e.target.value})}
+                        required
+                        >
+                        <option value="">Select Transport Mode</option>
+                        <option value="Express">Air Express</option>
+                        <option value="Air">Air</option>
+                        <option value="Sea">Sea</option>
+                        </Form.Control>
+                    </Form.Group>
+                    </Col>
+                </Row>
 
-            <Row>
-                <Col md={6}>
-                <Form.Group className="mb-3" controlId="formClientsCount">
-                    <Form.Label>Number of Clients</Form.Label>
+                <Row>
+                    <Col md={6}>
+                    <Form.Group className="mb-3" controlId="formClientsCount">
+                        <Form.Label>Number of Clients</Form.Label>
+                        <Form.Control
+                        type="number"
+                        min="1"
+                        value={shipmentForm.clientsCount}
+                        onChange={(e) => setShipmentForm({...shipmentForm, clientsCount: e.target.value})}
+                        required
+                        />
+                    </Form.Group>
+                    </Col>
+                    <Col md={6}>
+                    <Form.Group className="mb-3" controlId="formStatus">
+                        <Form.Label>Status</Form.Label>
+                        <Form.Control
+                        as="select"
+                        value={shipmentForm.status}
+                        onChange={(e) => setShipmentForm({...shipmentForm, status: e.target.value})}
+                        required
+                        >
+                        <option value="">Select Status</option>
+                        <option value="Pending">Pending</option>
+                        <option value="In Transit">In Transit</option>
+                        <option value="Delivered">Delivered</option>
+                        <option value="Cancelled">Cancelled</option>
+                        </Form.Control>
+                    </Form.Group>
+                    </Col>
+                </Row>
+
+                <Form.Group className="mb-3" controlId="formCurrentLocation">
+                    <Form.Label>Current Location</Form.Label>
                     <Form.Control
-                    type="number"
-                    min="1"
-                    value={shipmentForm.clientsCount}
-                    onChange={(e) => setShipmentForm({...shipmentForm, clientsCount: e.target.value})}
+                    type="text"
+                    placeholder="Enter current location"
+                    value={shipmentForm.currentLocation}
+                    onChange={(e) => setShipmentForm({...shipmentForm, currentLocation: e.target.value})}
                     required
                     />
                 </Form.Group>
-                </Col>
-                <Col md={6}>
-                <Form.Group className="mb-3" controlId="formStatus">
-                    <Form.Label>Status</Form.Label>
-                    <Form.Control
-                    as="select"
-                    value={shipmentForm.status}
-                    onChange={(e) => setShipmentForm({...shipmentForm, status: e.target.value})}
-                    required
-                    >
-                    <option value="">Select Status</option>
-                    <option value="Pending">Pending</option>
-                    <option value="In Transit">In Transit</option>
-                    <option value="Delivered">Delivered</option>
-                    <option value="Cancelled">Cancelled</option>
-                    </Form.Control>
-                </Form.Group>
-                </Col>
-            </Row>
 
-            <Form.Group className="mb-3" controlId="formCurrentLocation">
+                <Row>
+                    <Col md={6}>
+                    <Form.Group className="mb-3" controlId="formDepartureDate">
+                        <Form.Label>Departure Date</Form.Label>
+                        <Form.Control
+                        type="date"
+                        value={shipmentForm.departureDate}
+                        onChange={(e) => setShipmentForm({...shipmentForm, departureDate: e.target.value})}
+                        required
+                        />
+                    </Form.Group>
+                    </Col>
+                    <Col md={6}>
+                    <Form.Group className="mb-3" controlId="formETA">
+                        <Form.Label>Estimated Arrival (ETA)</Form.Label>
+                        <Form.Control
+                        type="date"
+                        value={shipmentForm.eta}
+                        onChange={(e) => setShipmentForm({...shipmentForm, eta: e.target.value})}
+                        required
+                        />
+                    </Form.Group>
+                    </Col>
+                </Row>
+                </Form>
+            </Modal.Body>
+            <Modal.Footer>
+                <Button variant="secondary" onClick={() => setShowAddShipment(false)}>
+                Cancel
+            </Button>
+                <Button variant="primary" onClick={handleSaveShipment}>
+                {editingShipment ? 'Update Shipment' : 'Save Shipment'}
+                </Button>
+            </Modal.Footer>
+        </Modal>
+
+
+        {/* Tracking Update Modal */}
+        <Modal show={showTrackingModal} onHide={() => setShowTrackingModal(false)}>
+          <Modal.Header closeButton>
+            <Modal.Title>Update Shipment Tracking</Modal.Title>
+            <small className="text-muted ms-2">Shipment ID: {currentTrackingShipment?.shipperID}</small>
+          </Modal.Header>
+          <Modal.Body>
+            <Form>
+              <Form.Group className="mb-3">
                 <Form.Label>Current Location</Form.Label>
                 <Form.Control
-                type="text"
-                placeholder="Enter current location"
-                value={shipmentForm.currentLocation}
-                onChange={(e) => setShipmentForm({...shipmentForm, currentLocation: e.target.value})}
-                required
+                  type="text"
+                  value={trackingUpdate.location}
+                  onChange={(e) => setTrackingUpdate({...trackingUpdate, location: e.target.value})}
+                  required
                 />
-            </Form.Group>
-
-            <Row>
-                <Col md={6}>
-                <Form.Group className="mb-3" controlId="formDepartureDate">
-                    <Form.Label>Departure Date</Form.Label>
-                    <Form.Control
-                    type="date"
-                    value={shipmentForm.departureDate}
-                    onChange={(e) => setShipmentForm({...shipmentForm, departureDate: e.target.value})}
-                    required
-                    />
-                </Form.Group>
-                </Col>
-                <Col md={6}>
-                <Form.Group className="mb-3" controlId="formETA">
-                    <Form.Label>Estimated Arrival (ETA)</Form.Label>
-                    <Form.Control
-                    type="date"
-                    value={shipmentForm.eta}
-                    onChange={(e) => setShipmentForm({...shipmentForm, eta: e.target.value})}
-                    required
-                    />
-                </Form.Group>
-                </Col>
-            </Row>
+              </Form.Group>
+              
+              <Form.Group className="mb-3">
+                <Form.Label>Status</Form.Label>
+                <Form.Control
+                  as="select"
+                  value={trackingUpdate.status}
+                  onChange={(e) => setTrackingUpdate({...trackingUpdate, status: e.target.value})}
+                  required
+                >
+                  <option value="">Select Status</option>
+                  <option value="Pending">Pending</option>
+                  <option value="In Transit">In Transit</option>
+                  <option value="Delivered">Delivered</option>
+                  <option value="Cancelled">Cancelled</option>
+                </Form.Control>
+              </Form.Group>
+              
+              <Form.Group className="mb-3">
+                <Form.Label>Updated ETA</Form.Label>
+                <Form.Control
+                  type="date"
+                  value={trackingUpdate.eta}
+                  onChange={(e) => setTrackingUpdate({...trackingUpdate, eta: e.target.value})}
+                />
+              </Form.Group>
+              
+              <Form.Group className="mb-3">
+                <Form.Label>Notes</Form.Label>
+                <Form.Control
+                  as="textarea"
+                  rows={3}
+                  value={trackingUpdate.notes}
+                  onChange={(e) => setTrackingUpdate({...trackingUpdate, notes: e.target.value})}
+                  placeholder="Any additional notes about this update"
+                />
+              </Form.Group>
             </Form>
-        </Modal.Body>
-        <Modal.Footer>
-            <Button variant="secondary" onClick={() => setShowAddShipment(false)}>
-            Cancel
-        </Button>
-            <Button variant="primary" onClick={handleSaveShipment}>
-            {editingShipment ? 'Update Shipment' : 'Save Shipment'}
+            
+            {/* Timestamps history display */}
+            {currentTrackingShipment?.timestamps?.length > 0 && (
+              <div className="mt-4">
+                <h6>Tracking History</h6>
+                <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
+                  {currentTrackingShipment.timestamps
+                    .sort((a, b) => new Date(b.date) - new Date(a.date))
+                    .map((ts, index) => (
+                      <div key={index} className="mb-2 p-2 border-bottom">
+                        <div className="d-flex justify-content-between">
+                          <strong>{ts.location}</strong>
+                          <small>{new Date(ts.date).toLocaleString()}</small>
+                        </div>
+                        <div className="d-flex justify-content-between">
+                          <span className={`badge bg-${ts.status === 'Delivered' ? 'success' : ts.status === 'In Transit' ? 'warning' : 'secondary'}`}>
+                            {ts.status}
+                          </span>
+                          {ts.eta && <small>ETA: {new Date(ts.eta).toLocaleDateString()}</small>}
+                        </div>
+                        {ts.notes && <small className="text-muted">{ts.notes}</small>}
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => setShowTrackingModal(false)}>
+              Cancel
             </Button>
-        </Modal.Footer>
+            <Button variant="primary" onClick={handleTrackingUpdate}>
+              Save Update
+            </Button>
+          </Modal.Footer>
         </Modal>
+
+
+        {/* Tracking History Modal */}
+      <Modal 
+        show={showTrackingHistoryModal} 
+        onHide={() => setShowTrackingHistoryModal(false)}
+        size="lg"
+      >
+        <Modal.Header closeButton className="bg-primary text-white">
+          <Modal.Title>
+            <div className="d-flex align-items-center">
+              <img 
+                src="/path-to-your-logo.png" 
+                alt="Company Logo" 
+                style={{ height: '30px', marginRight: '10px' }} 
+              />
+              Shipment Tracking History
+            </div>
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {selectedShipment && (
+            <div className="tracking-container">
+              <div className="tracking-header mb-4">
+                <h4>Shipment: {selectedShipment.shipperID}</h4>
+                <div className="d-flex justify-content-between">
+                  <div>
+                    <strong>Status:</strong> 
+                    <span className={`badge bg-${selectedShipment.status === 'Delivered' ? 'success' : selectedShipment.status === 'In Transit' ? 'warning' : 'secondary'} ms-2`}>
+                      {selectedShipment.status}
+                    </span>
+                  </div>
+                  <div>
+                    <strong>Current Location:</strong> {selectedShipment.currentLocation}
+                  </div>
+                  <div>
+                    <strong>ETA:</strong> {new Date(selectedShipment.eta).toLocaleDateString()}
+                  </div>
+                </div>
+              </div>
+
+              <div className="tracking-timeline">
+                {selectedShipment.timestamps?.length > 0 ? (
+                  selectedShipment.timestamps
+                    .sort((a, b) => new Date(b.date) - new Date(a.date))
+                    .map((timestamp, index) => (
+                      <div key={index} className="timeline-item">
+                        <div className="timeline-point"></div>
+                        <div className="timeline-content">
+                          <div className="d-flex justify-content-between">
+                            <h5>{timestamp.location}</h5>
+                            <small className="text-muted">
+                              {new Date(timestamp.date).toLocaleString()}
+                            </small>
+                          </div>
+                          <div className="d-flex align-items-center mb-2">
+                            <span className={`badge bg-${timestamp.status === 'Delivered' ? 'success' : timestamp.status === 'In Transit' ? 'warning' : 'secondary'} me-2`}>
+                              {timestamp.status}
+                            </span>
+                            {timestamp.eta && (
+                              <small>ETA: {new Date(timestamp.eta).toLocaleDateString()}</small>
+                            )}
+                          </div>
+                          {timestamp.notes && (
+                            <div className="timeline-notes">
+                              <p>{timestamp.notes}</p>
+                              <small className="text-muted">
+                                Updated by: {timestamp.updatedBy}
+                              </small>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))
+                ) : (
+                  <div className="text-center py-4">
+                    <p>No tracking history available for this shipment</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </Modal.Body>
+        <Modal.Footer className="bg-light">
+          <Button 
+            variant="secondary" 
+            onClick={() => setShowTrackingHistoryModal(false)}
+          >
+            Close
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      <style>{`
+        .tracking-timeline {
+          position: relative;
+          padding-left: 30px;
+        }
+        
+        .timeline-item {
+          position: relative;
+          padding-bottom: 20px;
+        }
+        
+        .timeline-point {
+          position: absolute;
+          left: -20px;
+          top: 0;
+          width: 12px;
+          height: 12px;
+          border-radius: 50%;
+          background-color: #0d6efd;
+          border: 2px solid white;
+          z-index: 2;
+        }
+        
+        .timeline-item:not(:last-child)::before {
+          content: '';
+          position: absolute;
+          left: -15px;
+          top: 12px;
+          height: 100%;
+          width: 2px;
+          background-color: #e9ecef;
+        }
+        
+        .timeline-content {
+          background: #f8f9fa;
+          padding: 15px;
+          border-radius: 5px;
+          margin-bottom: 10px;
+        }
+        
+        .timeline-notes {
+          background: white;
+          padding: 10px;
+          border-radius: 3px;
+          border-left: 3px solid #0d6efd;
+        }
+      `}</style>
     </Container>
   );
 };

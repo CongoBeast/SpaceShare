@@ -10,6 +10,8 @@ const ShipperProfile = () => {
   const [loading , setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
+  const [announcements, setAnnouncements] = useState([]);
+
   const handleClose = () => setShowModal(false);
   const handleShow = () => setShowModal(true);
 
@@ -130,6 +132,9 @@ const handleReviewSubmit = async (e) => {
         const companyReviewResponse = await axios.post('https://spaceshare-backend.onrender.com/get-reviews', { companyId });
 
         setCompanyReviews(companyReviewResponse.data)
+
+        const announcementsResponse = await axios.post('https://spaceshare-backend.onrender.com/get-announcements', { companyId });
+        setAnnouncements(announcementsResponse.data);
         
         } catch (error) {
         console.error("Error loading shipper profile:", error);
@@ -223,83 +228,83 @@ const handleReviewSubmit = async (e) => {
         <Tab eventKey="rates" title="Rates">
           <h5 className="mt-3">Sea Freight Rates</h5>
                 {/* Shipping Rates Card */}
-                {shipperRates.length > 0 ? (
-  <Card className="shadow-sm">
-    <Card.Header className="d-flex justify-content-between align-items-center">
-      <strong>Shipping Rates</strong>
-    </Card.Header>
-    <Card.Body>
-      <Table bordered responsive>
-        <thead>
-          <tr>
-            <th>Item</th>
-            <th>Sea (RMB/$USD)</th>
-            <th>Air (RMB/USD)</th>
-            <th>Air Express (RMB/USD)</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>General Goods (/kg)</td>
-            <td>
-              {shipperRates[0]?.rates?.general?.sea?.RMB || 'N/A'} / {shipperRates[0]?.rates?.general?.sea?.USD || 'N/A'}
-            </td>
-            <td>
-              {shipperRates[0]?.rates?.general?.air?.RMB || 'N/A'} / {shipperRates[0]?.rates?.general?.air?.USD || 'N/A'}
-            </td>
-            <td>
-              {shipperRates[0]?.rates?.general?.express?.RMB || 'N/A'} / {shipperRates[0]?.rates?.general?.express?.USD || 'N/A'}
-            </td>
-          </tr>
-          <tr>
-            <td>Phones (/pc)</td>
-            <td>
-              {shipperRates[0]?.rates?.phones?.sea?.RMB || 'N/A'} / {shipperRates[0]?.rates?.phones?.sea?.USD || 'N/A'}
-            </td>
-            <td>
-              {shipperRates[0]?.rates?.phones?.air?.RMB || 'N/A'} / {shipperRates[0]?.rates?.phones?.air?.USD || 'N/A'}
-            </td>
-            <td>
-              {shipperRates[0]?.rates?.phones?.express?.RMB || 'N/A'} / {shipperRates[0]?.rates?.phones?.express?.USD || 'N/A'}
-            </td>
-          </tr>
-          <tr>
-            <td>Laptops (/kg)</td>
-            <td>
-              {shipperRates[0]?.rates?.laptops?.sea?.RMB || 'N/A'} / {shipperRates[0]?.rates?.laptops?.sea?.USD || 'N/A'}
-            </td>
-            <td>
-              {shipperRates[0]?.rates?.laptops?.air?.RMB || 'N/A'} / {shipperRates[0]?.rates?.laptops?.air?.USD || 'N/A'}
-            </td>
-            <td>
-              {shipperRates[0]?.rates?.laptops?.express?.RMB || 'N/A'} / {shipperRates[0]?.rates?.laptops?.express?.USD || 'N/A'}
-            </td>
-          </tr>
-          <tr>
-            <td>Other Electronics (/kg)</td>
-            <td>
-              {shipperRates[0]?.rates?.electronics?.sea?.RMB || 'N/A'} / {shipperRates[0]?.rates?.electronics?.sea?.USD || 'N/A'}
-            </td>
-            <td>
-              {shipperRates[0]?.rates?.electronics?.air?.RMB || 'N/A'} / {shipperRates[0]?.rates?.electronics?.air?.USD || 'N/A'}
-            </td>
-            <td>
-              {shipperRates[0]?.rates?.electronics?.express?.RMB || 'N/A'} / {shipperRates[0]?.rates?.electronics?.express?.USD || 'N/A'}
-            </td>
-          </tr>
-        </tbody>
-      </Table>
-    </Card.Body>
-  </Card>
-) : (
-  <Card className="shadow-sm">
-    <Card.Body>
-      <div className="text-muted text-center">
-        This shipper hasn't set their rates yet.
-      </div>
-    </Card.Body>
-  </Card>
-)}
+            {shipperRates.length > 0 ? (
+            <Card className="shadow-sm">
+              <Card.Header className="d-flex justify-content-between align-items-center">
+                <strong>Shipping Rates</strong>
+              </Card.Header>
+              <Card.Body>
+                <Table bordered responsive>
+                  <thead>
+                    <tr>
+                      <th>Item</th>
+                      <th>Sea (RMB/$USD)</th>
+                      <th>Air (RMB/USD)</th>
+                      <th>Air Express (RMB/USD)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>General Goods (/kg)</td>
+                      <td>
+                        {shipperRates[0]?.rates?.general?.sea?.RMB || 'N/A'} / {shipperRates[0]?.rates?.general?.sea?.USD || 'N/A'}
+                      </td>
+                      <td>
+                        {shipperRates[0]?.rates?.general?.air?.RMB || 'N/A'} / {shipperRates[0]?.rates?.general?.air?.USD || 'N/A'}
+                      </td>
+                      <td>
+                        {shipperRates[0]?.rates?.general?.express?.RMB || 'N/A'} / {shipperRates[0]?.rates?.general?.express?.USD || 'N/A'}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Phones (/pc)</td>
+                      <td>
+                        {shipperRates[0]?.rates?.phones?.sea?.RMB || 'N/A'} / {shipperRates[0]?.rates?.phones?.sea?.USD || 'N/A'}
+                      </td>
+                      <td>
+                        {shipperRates[0]?.rates?.phones?.air?.RMB || 'N/A'} / {shipperRates[0]?.rates?.phones?.air?.USD || 'N/A'}
+                      </td>
+                      <td>
+                        {shipperRates[0]?.rates?.phones?.express?.RMB || 'N/A'} / {shipperRates[0]?.rates?.phones?.express?.USD || 'N/A'}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Laptops (/kg)</td>
+                      <td>
+                        {shipperRates[0]?.rates?.laptops?.sea?.RMB || 'N/A'} / {shipperRates[0]?.rates?.laptops?.sea?.USD || 'N/A'}
+                      </td>
+                      <td>
+                        {shipperRates[0]?.rates?.laptops?.air?.RMB || 'N/A'} / {shipperRates[0]?.rates?.laptops?.air?.USD || 'N/A'}
+                      </td>
+                      <td>
+                        {shipperRates[0]?.rates?.laptops?.express?.RMB || 'N/A'} / {shipperRates[0]?.rates?.laptops?.express?.USD || 'N/A'}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Other Electronics (/kg)</td>
+                      <td>
+                        {shipperRates[0]?.rates?.electronics?.sea?.RMB || 'N/A'} / {shipperRates[0]?.rates?.electronics?.sea?.USD || 'N/A'}
+                      </td>
+                      <td>
+                        {shipperRates[0]?.rates?.electronics?.air?.RMB || 'N/A'} / {shipperRates[0]?.rates?.electronics?.air?.USD || 'N/A'}
+                      </td>
+                      <td>
+                        {shipperRates[0]?.rates?.electronics?.express?.RMB || 'N/A'} / {shipperRates[0]?.rates?.electronics?.express?.USD || 'N/A'}
+                      </td>
+                    </tr>
+                  </tbody>
+                </Table>
+              </Card.Body>
+            </Card>
+          ) : (
+            <Card className="shadow-sm">
+              <Card.Body>
+                <div className="text-muted text-center">
+                  This shipper hasn't set their rates yet.
+                </div>
+              </Card.Body>
+            </Card>
+          )}
         </Tab>
 
         <Tab eventKey="leadTimes" title="Lead Times">
@@ -340,6 +345,38 @@ const handleReviewSubmit = async (e) => {
                   </Card.Body>
                 </Card>
               )}
+        </Tab>
+
+        <Tab eventKey="announcements" title="Announcements">
+          {announcements.length > 0 ? (
+            <div className="mt-3">
+              {announcements.map((announcement, index) => (
+                <Card key={index} className="mb-3 shadow-sm">
+                  <Card.Body>
+                    <div className="d-flex justify-content-between align-items-start mb-2">
+                      <Card.Title className="mb-0">{announcement.title}</Card.Title>
+                      <small className="text-muted">
+                        {new Date(announcement.date).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })}
+                      </small>
+                    </div>
+                    <Card.Text>{announcement.content}</Card.Text>
+                  </Card.Body>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <Card className="shadow-sm mt-4">
+              <Card.Body>
+                <div className="text-muted text-center py-4">
+                  This shipper has not published any announcements
+                </div>
+              </Card.Body>
+            </Card>
+          )}
         </Tab>
 
         <Tab eventKey="reviews" title="Reviews">

@@ -21,6 +21,7 @@ const AuthShipperPage = () => {
     transportModes: [],
     avatar: '',
     introduction: '',
+    shippingAddress: '',
     deliveryCities: []
   });
   const [loading, setLoading] = useState(false);
