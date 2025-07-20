@@ -20,6 +20,7 @@ import ShipperDashboard from './pages/shippers-dashboard.js'
 import AuthShipperPage from './pages/auth-shippers.js'
 import ShipperProfile from './pages/ShipperProfile.js'
 import ManageShipments from './pages/manageShipments.js'
+import TrackShipment from './pages/track.js'
 
 
 function App() {
@@ -53,6 +54,7 @@ function App() {
           <Route path="/auth-shipper" element={<AuthShipperPage/>}></Route>
           <Route path="/shipper-profile/:companyName" element={<ShipperProfile/>}></Route>
           <Route path="/manage-shipments" element={<ManageShipments/>}></Route>
+          <Route path="/track" element={<TrackShipment/>}></Route>
         </Routes>
       </div>
     
