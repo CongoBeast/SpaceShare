@@ -18,6 +18,7 @@ const ManageShipments = () => {
   const [newAnnouncement, setNewAnnouncement] = useState({ title: '', content: '' });
 
   const [shipmentForm, setShipmentForm] = useState({
+    _id: '',
     shipperID: '',
     transportMode: '',
     clientsCount: 0,
@@ -147,7 +148,8 @@ const ManageShipments = () => {
 
       try {
           // Generate shipping ID
-          const shipperID = generateShippingID();
+          const shipmentID = generateShippingID();
+          const shipperID= localStorage.companyId
           
           // Create initial timestamp
           const initialTimestamp = {
@@ -162,6 +164,7 @@ const ManageShipments = () => {
           // Prepare the shipment data with initial timestamp
           const shipmentData = {
             ...shipmentForm,
+            shipmentID,
             shipperID,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
@@ -184,6 +187,7 @@ const ManageShipments = () => {
             
             // Reset and close
             setShipmentForm({
+                _id: '',
                 shipperID: '',
                 transportMode: '',
                 clientsCount: 0,
@@ -486,7 +490,7 @@ const ManageShipments = () => {
           <Table striped bordered hover responsive>
             <thead>
               <tr>
-                <th>Shipper ID</th>
+                <th>Shipment ID</th>
                 <th>Transport Mode</th>
                 <th>Clients</th>
                 <th>Current Location</th>
@@ -506,7 +510,7 @@ const ManageShipments = () => {
                       onClick={() => handleShowTrackingHistory(shipment)}
                       style={{ padding: 0, border: 0 }}
                     >
-                      {shipment.shipperID}
+                      {shipment._id}
                     </Button>
                   </td>
                   <td>{shipment.transportMode}</td>
