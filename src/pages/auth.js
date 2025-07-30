@@ -168,6 +168,7 @@ const AuthPage = () => {
         });
       } else {
         setMessage('Operation successful');
+        navigate('/');
       }
     } catch (error) {
       setLoading(false);
