@@ -1,9 +1,5 @@
 import React, { useState, useEffect } from "react";
-import "bootstrap/dist/css/bootstrap.min.css";
-import "bootstrap-icons/font/bootstrap-icons.css";
-import "../App.css";
-import axios from "axios"
-import { useNavigate } from "react-router-dom";
+import { Search, Package, ShoppingCart, MessageCircle, Calendar, MapPin, User, X, Send, Loader } from 'lucide-react';
 
 const MarketOffers = () => {
   const [view, setView] = useState("buyers"); // "buyers" or "sellers"
@@ -24,17 +20,17 @@ const MarketOffers = () => {
   const [selectedOffer, setSelectedOffer] = useState("");
   const [selectedOfferUser, setSelectedOfferUser] = useState("");
 
-  const [requestData , setRequestData] = useState({
+  const [requestData, setRequestData] = useState({
     message: "",
-    reqquestee: localStorage.user,
+    reqquestee: localStorage.getItem('user') || '',
     offerId: "",
     userId: "",
-    status:"Pending"
-  })
+    status: "Pending"
+  });
 
-  const [chatData , setChatData] = useState({
-    recieverName:"" ,
-    userName: "" ,
+  const [chatData, setChatData] = useState({
+    recieverName: "",
+    userName: "",
     offerDetails: {},
     userId: "",
     recieverID: "",
@@ -43,162 +39,154 @@ const MarketOffers = () => {
     timeCreated: "",
     avatar: 'https://images.unsplash.com/photo-1693071689934-80da90442826?w=700&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fHNtaWxpbmclMjBibGFjayUyMG1hbnxlbnwwfHwwfHx8MA%3D%3D',
     read: false
-  })
+  });
 
-  const [messageData , setMessageData] = useState({
-    chatId:"",
-    recieverName:"" ,
-    userName: "" ,
+  const [messageData, setMessageData] = useState({
+    chatId: "",
+    recieverName: "",
+    userName: "",
     userId: "",
     recieverID: "",
     message: "",
     timeCreated: "",
     read: false
-  })
+  });
 
   const suggestedMessages = [
-  "I am interested in your offer, reach me on my WeChat ID....",
-  "How can I pay for the shipping fee?",
-  "Is this offer still available? I am interested."
+    "I am interested in your offer, reach me on my WeChat ID....",
+    "How can I pay for the shipping fee?",
+    "Is this offer still available? I am interested."
   ];
 
-  const navigate = useNavigate();
-
-// Function to handle sending message
-const handleSendMessage = () => {
-  setIsSending(true);
-  // Simulate an API call with a timeout
-  setTimeout(() => {
-    alert("Message sent successfully!");
-    setIsSending(false);
-    setShowModal(false);
-    setMessage(""); // Clear message after sending
-  }, 2000);
-};
-
-const handleSubmit = () => {
-  setIsSending(true);
-
-  // Get user info from localStorage
-  const userName = localStorage.getItem("user");
-  const userId = localStorage.getItem("user");
-
-  console.log(chatData)
-
-  // Step 1: Check if the chat already exists
-  fetch("https://spaceshare-backend.onrender.com/check-chat", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      userName,
-      recieverName: chatData.recieverName,
-    }),
-  })
-    .then((res) => res.json())
-    .then((result) => {
-      if (result.exists) {
-        // Chat already exists — just navigate
-        setToastMessage("Chat already exists. Redirecting...");
-        navigate("/chat");
-        return Promise.reject("Chat already exists"); // Prevent further execution
-      }
-
-      // Step 2: If chat doesn't exist, create new chat
-      return fetch("https://spaceshare-backend.onrender.com/create-chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(chatData),
-      });
-    })
-    .then((response) => {
-      if (!response.ok) throw new Error("Failed to create chat");
-      return response.json();
-    })
-    .then((data) => {
-      const chatId = data.insertedId;
-
-      // Build the message
-      const newMessage = {
-        chatId: chatId,
-        recieverName: chatData.recieverID,
-        userName,
-        userId,
-        recieverID: chatData.recieverName,
-        message: chatData.lastMessage,
-        timeCreated: new Date().toISOString(),
-        read: false,
-      };
-
-      // Send message
-      return fetch("https://spaceshare-backend.onrender.com/send-message", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newMessage),
-      });
-    })
-    .then((res) => {
-      if (!res.ok) throw new Error("Failed to send message");
-      return res.json();
-    })
-    .then(() => {
-      setToastMessage("Chat and message sent successfully!");
-      setShowModal(false);
-      navigate("/chat");
-    })
-    .catch((error) => {
-      if (error !== "Chat already exists") {
-        console.error("Error:", error);
-        setToastMessage("Failed to create chat or send message.");
-      }
-    })
-    .finally(() => {
+  // Function to handle sending message
+  const handleSendMessage = () => {
+    setIsSending(true);
+    // Simulate an API call with a timeout
+    setTimeout(() => {
+      alert("Message sent successfully!");
       setIsSending(false);
-      setTimeout(() => setToastMessage(null), 3000);
-    });
-};
+      setShowModal(false);
+      setMessage(""); // Clear message after sending
+    }, 2000);
+  };
 
+  const handleSubmit = () => {
+    setIsSending(true);
 
-const handleInputChange = (e) => {
-  const { name, value } = e.target;
-  setChatData(prev => ({
-    ...prev,
-    [name]: value,
-  }));
-};
+    // Get user info from localStorage
+    const userName = localStorage.getItem("user");
+    const userId = localStorage.getItem("user");
+
+    console.log(chatData);
+
+    // Step 1: Check if the chat already exists
+    fetch("https://spaceshare-backend.onrender.com/check-chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        userName,
+        recieverName: chatData.recieverName,
+      }),
+    })
+      .then((res) => res.json())
+      .then((result) => {
+        if (result.exists) {
+          // Chat already exists — just navigate
+          setToastMessage("Chat already exists. Redirecting...");
+          // navigate("/chat");
+          return Promise.reject("Chat already exists"); // Prevent further execution
+        }
+
+        // Step 2: If chat doesn't exist, create new chat
+        return fetch("https://spaceshare-backend.onrender.com/create-chat", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(chatData),
+        });
+      })
+      .then((response) => {
+        if (!response.ok) throw new Error("Failed to create chat");
+        return response.json();
+      })
+      .then((data) => {
+        const chatId = data.insertedId;
+
+        // Build the message
+        const newMessage = {
+          chatId: chatId,
+          recieverName: chatData.recieverID,
+          userName,
+          userId,
+          recieverID: chatData.recieverName,
+          message: chatData.lastMessage,
+          timeCreated: new Date().toISOString(),
+          read: false,
+        };
+
+        // Send message
+        return fetch("https://spaceshare-backend.onrender.com/send-message", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(newMessage),
+        });
+      })
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to send message");
+        return res.json();
+      })
+      .then(() => {
+        setToastMessage("Chat and message sent successfully!");
+        setShowModal(false);
+        // navigate("/chat");
+      })
+      .catch((error) => {
+        if (error !== "Chat already exists") {
+          console.error("Error:", error);
+          setToastMessage("Failed to create chat or send message.");
+        }
+      })
+      .finally(() => {
+        setIsSending(false);
+        setTimeout(() => setToastMessage(null), 3000);
+      });
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setChatData(prev => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
 
   // Function to fetch packages from the server
   const fetchSellPackages = async () => {
-    const type  = "sell"
+    const type = "sell";
     try {
-      const response = await axios.get('https://spaceshare-backend.onrender.com/packages', {
-        params: { type }, // Pass the type as a query parameter
-      });
-      setSellPackages(response.data); // Update state with fetched packages
+      const response = await fetch('https://spaceshare-backend.onrender.com/packages?' + new URLSearchParams({ type }));
+      const data = await response.json();
+      setSellPackages(data); // Update state with fetched packages
     } catch (error) {
       console.error('Error fetching packages:', error);
     }
   };
 
   const fetchBuyPackages = async () => {
-    const type = "buy"
+    const type = "buy";
     try {
-      const response = await axios.get('https://spaceshare-backend.onrender.com/packages', {
-        params: { type }, // Pass the type as a query parameter
-      });
-      setBuyPackages(response.data); // Update state with fetched packages
+      const response = await fetch('https://spaceshare-backend.onrender.com/packages?' + new URLSearchParams({ type }));
+      const data = await response.json();
+      setBuyPackages(data); // Update state with fetched packages
     } catch (error) {
       console.error('Error fetching packages:', error);
     }
   };
-
-  // Fetch packages when the component mounts or when the type changes
-
 
   // Filter data by search input
   const filterOffers = (offers) =>
@@ -208,15 +196,12 @@ const handleInputChange = (e) => {
         offer.destination.toLowerCase().includes(search.toLowerCase())
     );
 
-  // console.log(buyPackages)
-
   const contactClick = (offer) => {
     if (!isLoggedIn) {
       setModalMessage("Only logged-in users can request contact.");
-      console.log("not logged in")
+      console.log("not logged in");
     } else {
       setModalMessage("Thank you for your interest! We will notify the seller.");
-
     }
 
     setSelectedOffer(offer._id);
@@ -224,7 +209,6 @@ const handleInputChange = (e) => {
 
     setChatData({
       ...chatData,
-      // lastMessage: message,
       userId: localStorage.getItem("user"),
       userName: localStorage.getItem("user"),
       offerId: offer._id,
@@ -235,201 +219,625 @@ const handleInputChange = (e) => {
       read: false,
     });
 
-
     setShowModal(true);
-
-    // console.log(selectedOffer)
   };
 
   const renderOfferCard = (offer, type) => (
-    <div className="col-md-3 col-sm-6" key={offer._id + offer.datePosted}>
-      <div
-        className="card shadow-sm mb-3"
-        style={{
-          borderRadius: "8px",
-          backgroundColor: type === "buyers" ? "#e8f4fc" : "#fde8e8",
-          padding: "10px",
-        }}
-      >
-        <div className="card-body text-center">
-          {/* Circular image */}
-          <div className="mb-3">
+    <div className="offer-card-container" key={offer._id + offer.datePosted}>
+      <div className={`offer-card ${type === "buyers" ? "buyer-card" : "seller-card"}`}>
+        <div className="card-header">
+          <div className="profile-section">
             <img
-              src={offer.profileImage || "https://github.com/CongoBeast/SpaceShare/blob/main/src/pages/profile-download.jpg?raw=true"} // Replace with actual profile image URL
+              src={offer.profileImage || "https://github.com/CongoBeast/SpaceShare/blob/main/src/pages/profile-download.jpg?raw=true"}
               alt={`${offer.username}'s profile`}
-              className="rounded-circle"
-              style={{ width: "50px", height: "50px", objectFit: "cover" }}
+              className="profile-image"
             />
+            <div className="user-info">
+              <h3 className="username">{offer.username}</h3>
+              <span className="post-date">{formatReviewDate(offer.datePosted)}</span>
+            </div>
           </div>
-          {/* Offer details */}
-          <h6 className="card-title mb-2">{offer.username}</h6>
-          <p className="card-text text-muted" style={{ fontSize: "0.9rem" }}>
-            {type === "buyers" ? (
-              <>
-                <strong>Space Needed:</strong> {offer.space} {offer.units} <br />
-              </>
-            ) : (
-              <>
-                <strong>Space Available:</strong> {offer.space} {offer.units} <br />
-                <strong>Price:</strong> {offer.price} {offer.denomination}/{offer.units} <br />
-              </>
+          <div className="offer-type-badge">
+            {type === "buyers" ? <ShoppingCart size={16} /> : <Package size={16} />}
+          </div>
+        </div>
+
+        <div className="card-content">
+          <div className="space-info">
+            <div className="space-detail">
+              <span className="label">
+                {type === "buyers" ? "Space Needed:" : "Space Available:"}
+              </span>
+              <span className="value">{offer.space} {offer.units}</span>
+            </div>
+            {type === "sellers" && (
+              <div className="price-detail">
+                <span className="label">Price:</span>
+                <span className="value price">{offer.price} {offer.denomination}/{offer.units}</span>
+              </div>
             )}
-            <strong>Goods Type:</strong> {offer.goodsType} <br />
-            <strong>Departure:</strong> {offer.departure} <br />
-            <strong>Destination:</strong> {offer.destination} <br />
-            <strong>Posted:</strong> {formatReviewDate(offer.datePosted)} <br />
-            {/* <strong>Price:</strong> {offer.price} {offer.denomination} <br /> */}
-            <strong>Departure Date:</strong> {offer.departureDate} <br />
-          </p>
-          {/* Contact button */}
+          </div>
+
+          <div className="offer-details">
+            <div className="detail-item">
+              <Package size={14} />
+              <span>{offer.goodsType}</span>
+            </div>
+            <div className="detail-item">
+              <MapPin size={14} />
+              <span>{offer.departure} → {offer.destination}</span>
+            </div>
+            <div className="detail-item">
+              <Calendar size={14} />
+              <span>{offer.departureDate}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="card-footer">
           <button
-            className="btn btn-success d-block mx-auto mb-2"
+            className="contact-btn"
             onClick={() => contactClick(offer)}
             disabled={offer.username === localStorage.getItem('user')}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
           >
-            <i className="bi bi-envelope me-2"></i> Contact
+            <MessageCircle size={16} />
+            Contact
           </button>
-          {/* Expiration text */}
-          <p className="text-muted fst-italic" style={{ fontSize: "0.8rem" }}>
-            Expires on {new Date(offer.expirationDate).toLocaleDateString()}
-          </p>
+          <div className="expiry-info">
+            <span>Expires: {new Date(offer.expirationDate).toLocaleDateString()}</span>
+          </div>
         </div>
       </div>
     </div>
   );
 
-    useEffect(() => {
+  useEffect(() => {
     fetchBuyPackages();
     fetchSellPackages();
     setIsLoggedIn(!!localStorage.getItem("token"));
-    // console.log(localStorage.getItem("token"))
   }, []);
-  
 
-  const formatReviewDate= (dateString) => {
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffInHours = Math.floor((now - date) / (1000 * 60 * 60));
-  
-  if (diffInHours < 24) {
-    return `Today ${date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
-  } else if (diffInHours < 48) {
-    return `Yesterday ${date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
-  } else {
-    return date.toLocaleDateString([], {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  }
-}
+  const formatReviewDate = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInHours = Math.floor((now - date) / (1000 * 60 * 60));
 
+    if (diffInHours < 24) {
+      return `Today ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    } else if (diffInHours < 48) {
+      return `Yesterday ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    } else {
+      return date.toLocaleDateString([], {
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+  };
+
+  const customStyles = `
+    .market-container {
+      background: linear-gradient(135deg, #F3F3E0 0%, #CBDCEB 100%);
+      min-height: 100vh;
+      padding: 2rem 1rem;
+    }
+
+    .market-content {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .page-header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .page-title {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #133E87;
+      margin-bottom: 0.5rem;
+    }
+
+    .page-subtitle {
+      font-size: 1.1rem;
+      color: #608BC1;
+      margin-bottom: 2rem;
+    }
+
+    .search-container {
+      position: relative;
+      max-width: 600px;
+      margin: 0 auto 3rem;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 1rem 1rem 1rem 3rem;
+      border: 2px solid #CBDCEB;
+      border-radius: 1rem;
+      font-size: 1rem;
+      background-color: white;
+      box-shadow: 0 4px 15px rgba(19, 62, 135, 0.08);
+      transition: all 0.3s ease;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: #608BC1;
+      box-shadow: 0 0 0 0.25rem rgba(96, 139, 193, 0.25);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #608BC1;
+    }
+
+    .tab-container {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 3rem;
+    }
+
+    .tab-button {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 1rem 2rem;
+      border: 2px solid #CBDCEB;
+      border-radius: 1rem;
+      background-color: white;
+      color: #133E87;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(19, 62, 135, 0.08);
+    }
+
+    .tab-button:hover {
+      border-color: #608BC1;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(19, 62, 135, 0.15);
+    }
+
+    .tab-button.active {
+      background: linear-gradient(135deg, #133E87 0%, #608BC1 100%);
+      border-color: #133E87;
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(19, 62, 135, 0.3);
+    }
+
+    .offers-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+
+    .offer-card-container {
+      display: flex;
+      justify-content: center;
+    }
+
+    .offer-card {
+      width: 100%;
+      max-width: 400px;
+      background: white;
+      border-radius: 1.5rem;
+      box-shadow: 0 8px 25px rgba(19, 62, 135, 0.15);
+      overflow: hidden;
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+    }
+
+    .offer-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 35px rgba(19, 62, 135, 0.25);
+    }
+
+    .buyer-card {
+      border-left: 4px solid #608BC1;
+    }
+
+    .seller-card {
+      border-left: 4px solid #133E87;
+    }
+
+    .card-header {
+      padding: 1.5rem 1.5rem 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .profile-section {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .profile-image {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid #CBDCEB;
+    }
+
+    .user-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .username {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #133E87;
+      margin: 0;
+    }
+
+    .post-date {
+      font-size: 0.85rem;
+      color: #608BC1;
+    }
+
+    .offer-type-badge {
+      padding: 0.5rem;
+      border-radius: 0.5rem;
+      background-color: rgba(96, 139, 193, 0.1);
+      color: #608BC1;
+    }
+
+    .card-content {
+      padding: 0 1.5rem 1rem;
+    }
+
+    .space-info {
+      margin-bottom: 1rem;
+    }
+
+    .space-detail, .price-detail {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .label {
+      font-size: 0.9rem;
+      color: #608BC1;
+      font-weight: 500;
+    }
+
+    .value {
+      font-weight: 600;
+      color: #133E87;
+    }
+
+    .price {
+      color: #28a745;
+      font-size: 1.1rem;
+    }
+
+    .offer-details {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .detail-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+      color: #608BC1;
+    }
+
+    .card-footer {
+      padding: 1rem 1.5rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .contact-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      background: linear-gradient(135deg, #133E87 0%, #608BC1 100%);
+      color: white;
+      border: none;
+      border-radius: 0.75rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(19, 62, 135, 0.3);
+    }
+
+    .contact-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(19, 62, 135, 0.4);
+    }
+
+    .contact-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .expiry-info {
+      font-size: 0.8rem;
+      color: #608BC1;
+      font-style: italic;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 1rem;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 1.5rem;
+      box-shadow: 0 20px 40px rgba(19, 62, 135, 0.3);
+      max-width: 500px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      padding: 1.5rem 1.5rem 1rem;
+      border-bottom: 2px solid #F3F3E0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #133E87;
+      margin: 0;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      color: #608BC1;
+      cursor: pointer;
+      padding: 0.5rem;
+      border-radius: 0.5rem;
+      transition: all 0.3s ease;
+    }
+
+    .close-btn:hover {
+      background-color: rgba(96, 139, 193, 0.1);
+    }
+
+    .modal-body {
+      padding: 1.5rem;
+    }
+
+    .modal-message {
+      margin-bottom: 1rem;
+      color: #133E87;
+      font-size: 1rem;
+    }
+
+    .message-textarea {
+      width: 100%;
+      padding: 1rem;
+      border: 2px solid #CBDCEB;
+      border-radius: 0.75rem;
+      font-size: 1rem;
+      resize: vertical;
+      min-height: 100px;
+      font-family: inherit;
+      transition: all 0.3s ease;
+    }
+
+    .message-textarea:focus {
+      outline: none;
+      border-color: #608BC1;
+      box-shadow: 0 0 0 0.25rem rgba(96, 139, 193, 0.25);
+    }
+
+    .modal-footer {
+      padding: 1rem 1.5rem 1.5rem;
+      display: flex;
+      gap: 1rem;
+      justify-content: flex-end;
+    }
+
+    .modal-btn {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 0.75rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .modal-btn-secondary {
+      background-color: #F3F3E0;
+      color: #133E87;
+      border: 2px solid #CBDCEB;
+    }
+
+    .modal-btn-secondary:hover {
+      background-color: #CBDCEB;
+    }
+
+    .modal-btn-primary {
+      background: linear-gradient(135deg, #133E87 0%, #608BC1 100%);
+      color: white;
+      box-shadow: 0 4px 15px rgba(19, 62, 135, 0.3);
+    }
+
+    .modal-btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(19, 62, 135, 0.4);
+    }
+
+    .modal-btn-primary:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s linear infinite;
+    }
+
+    .toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: linear-gradient(135deg, #133E87 0%, #608BC1 100%);
+      color: white;
+      padding: 1rem 1.5rem;
+      border-radius: 0.75rem;
+      box-shadow: 0 8px 25px rgba(19, 62, 135, 0.3);
+      z-index: 1100;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 768px) {
+      .market-container {
+        padding: 1rem 0.5rem;
+      }
+
+      .page-title {
+        font-size: 2rem;
+      }
+
+      .tab-container {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .tab-button {
+        width: 100%;
+        max-width: 300px;
+        justify-content: center;
+      }
+
+      .offers-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+      }
+
+      .modal-content {
+        margin: 1rem;
+      }
+    }
+  `;
 
   return (
-    <div className="container mt-4">
-      <h2 className="mb-4">Current Market Offers</h2>
+    <>
+      <style>{customStyles}</style>
+      <div className="market-container">
+        <div className="market-content">
+          <div className="page-header">
+            <h1 className="page-title">Market Offers</h1>
+            <p className="page-subtitle">Discover and connect with space sharing opportunities</p>
+          </div>
 
-      <div className="mb-4">
-        <input
-          type="text"
-          className="form-control"
-          placeholder="Search by departure or destination"
-          value={search}
-          id="home-search"
-          onChange={(e) => setSearch(e.target.value)}
-        />
-      </div>
+          <div className="search-container">
+            <Search className="search-icon" size={20} />
+            <input
+              type="text"
+              className="search-input"
+              placeholder="Search by departure or destination..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
 
-      {/* Tabs for Buyers and Sellers */}
+          <div className="tab-container">
+            <button
+              className={`tab-button ${view === "buyers" ? "active" : ""}`}
+              onClick={() => setView("buyers")}
+            >
+              <ShoppingCart size={20} />
+              Buy Space
+            </button>
+            <button
+              className={`tab-button ${view === "sellers" ? "active" : ""}`}
+              onClick={() => setView("sellers")}
+            >
+              <Package size={20} />
+              Sell Space
+            </button>
+          </div>
 
-      <ul className="nav nav-tabs justify-content-center" style={{ borderBottom: "2px solid #ddd" }}>
-        <li className="nav-item">
-          <button
-            className={`nav-link ${view === "buyers" ? "active" : ""}`}
-            onClick={() => setView("buyers")}
-            style={{
-              borderRadius: "8px 8px 0 0",
-              backgroundColor: view === "buyers" ? "#0d6efd" : "#f8f9fa",
-              color: view === "buyers" ? "#fff" : "#000",
-              border: view === "buyers" ? "2px solid #0d6efd" : "2px solid #ddd",
-              margin: "0 5px",
-              padding: "5px 10px",
-              transition: "background-color 0.3s, color 0.3s",
-              fontWeight: view === "buyers" ? "bold" : "normal",
-            }}
-          >
-            <i className="bi bi-basket2 me-2"></i> Buy Space
-          </button>
-        </li>
-        <li className="nav-item">
-          <button
-            className={`nav-link ${view === "sellers" ? "active" : ""}`}
-            onClick={() => setView("sellers")}
-            style={{
-              borderRadius: "8px 8px 0 0",
-              backgroundColor: view === "sellers" ? "#0d6efd" : "#f8f9fa",
-              color: view === "sellers" ? "#fff" : "#000",
-              border: view === "sellers" ? "2px solid #0d6efd" : "2px solid #ddd",
-              margin: "0 5px",
-              padding: "5px 10px",
-              transition: "background-color 0.3s, color 0.3s",
-              fontWeight: view === "sellers" ? "bold" : "normal",
-            }}
-          >
-            <i className="bi bi-box-arrow-in-down me-2"></i> Sell Space
-          </button>
-        </li>
-      </ul>
+          <div className="offers-grid">
+            {view === "buyers" &&
+              filterOffers(buyPackages).map((offer) => renderOfferCard(offer, "buyers"))}
+            {view === "sellers" &&
+              filterOffers(sellPackages).map((offer) =>
+                renderOfferCard(offer, "sellers")
+              )}
+          </div>
 
-      <div className="row mt-4">
-        {view === "buyers" &&
-          filterOffers(buyPackages).map((offer) => renderOfferCard(offer, "buyers"))}
-        {view === "sellers" &&
-          filterOffers(sellPackages).map((offer) =>
-            renderOfferCard(offer, "sellers")
-          )}
-      </div>
-
-        {showModal && (
-          <div
-            className="modal fade show d-block"
-            tabIndex="-1"
-            style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
-          >
-            <div className="modal-dialog">
+          {showModal && (
+            <div className="modal-overlay">
               <div className="modal-content">
                 <div className="modal-header">
-                  <h5 className="modal-title">Contact Request</h5>
+                  <h2 className="modal-title">Contact Request</h2>
                   <button
-                    type="button"
-                    className="btn-close"
+                    className="close-btn"
                     onClick={() => setShowModal(false)}
-                  ></button>
+                  >
+                    <X size={24} />
+                  </button>
                 </div>
                 <div className="modal-body">
-                  <p>{modalMessage}</p>
+                  <p className="modal-message">{modalMessage}</p>
 
                   {isLoggedIn && (
                     <textarea
-                      className="form-control mb-3"
+                      className="message-textarea"
                       placeholder="Type your message here..."
-                      rows="3"
                       value={chatData.lastMessage}
                       name="lastMessage"
                       onChange={handleInputChange}
-                    ></textarea>
+                    />
                   )}
                 </div>
                 <div className="modal-footer">
                   <button
-                    type="button"
-                    className="btn btn-secondary"
+                    className="modal-btn modal-btn-secondary"
                     onClick={() => setShowModal(false)}
                   >
                     Close
@@ -437,35 +845,36 @@ const handleInputChange = (e) => {
 
                   {isLoggedIn && (
                     <button
-                      type="button"
-                      className="btn btn-primary"
+                      className="modal-btn modal-btn-primary"
                       onClick={handleSubmit}
                       disabled={isSending || chatData.lastMessage.trim() === ""}
                     >
                       {isSending ? (
                         <>
-                          <span
-                            className="spinner-border spinner-border-sm me-2"
-                            role="status"
-                            aria-hidden="true"
-                          ></span>
+                          <div className="spinner" />
                           Sending...
                         </>
                       ) : (
-                        "Send Message"
+                        <>
+                          <Send size={16} />
+                          Send Message
+                        </>
                       )}
                     </button>
                   )}
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-
-    </div>
-
-    
+          {toastMessage && (
+            <div className="toast">
+              {toastMessage}
+            </div>
+          )}
+        </div>
+      </div>
+    </>
   );
 };
 

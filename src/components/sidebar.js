@@ -57,6 +57,8 @@ function Sidebar() {
     localStorage.removeItem('username');
     localStorage.removeItem('user');
     localStorage.removeItem('email');
+    localStorage.removeItem('companyName');
+    localStorage.removeItem('companyId');
     setIsLoggedIn(false);
   
     // Prepare notification data
@@ -307,3 +309,4 @@ function Sidebar() {
 }
 
 export default Sidebar;
+
