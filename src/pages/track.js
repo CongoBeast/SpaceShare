@@ -279,6 +279,8 @@ const TrackShipment = () => {
       return;
     }
 
+    console.log(trackingId.trim())
+
     setLoading(true);
     setError(null);
     
@@ -467,10 +469,10 @@ const TrackShipment = () => {
                     className="form-control-lg"
                     style={{ fontSize: '1.1rem' }}
                   />
-                  <Form.Text className="text-muted">
+                  {/* <Form.Text className="text-muted">
                     <i className="fas fa-info-circle me-1"></i>
                     Your tracking ID can be found in your confirmation email
-                  </Form.Text>
+                  </Form.Text> */}
                 </Form.Group>
               </Col>
               <Col md={4}>

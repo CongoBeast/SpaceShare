@@ -512,27 +512,23 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from "react-router-dom";
 import axios from "axios";
-import { IoClose, IoStar, IoStarOutline, IoSearch, IoPaperPlane } from 'react-icons/io5';
+import {IoChatbubbleEllipses, IoClose, IoStar, IoStarOutline, IoSearch, IoPaperPlane } from 'react-icons/io5';
 
 const ShipperProfile = () => {
-  // // [All your existing state and function declarations remain exactly the same]
-  // // Only showing the first few for example:
-  // const [key, setKey] = useState('introduction');
-  // const [reviews, setReviews] = useState([]);
-  // const [loading, setLoading] = useState(false);
-  // const [showModal, setShowModal] = useState(false);
-  // // ... keep all other state declarations
-
-  // // [All your existing functions remain exactly the same]
-  // // Only showing the first few for example:
-  // const handleClose = () => setShowModal(false);
-  // const handleShow = () => setShowModal(true);
-  // // ... keep all other function declarations
 
     const [key, setKey] = useState('introduction');
   const [reviews, setReviews] = useState([]);
   const [loading , setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
+
+  const [isSending, setIsSending] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+    // const [isLoggedIn, setIsLoggedIn] = useState(false);
+  
+
+  const [toastMessage, setToastMessage] = useState(null);
+  
+  
 
   const [announcements, setAnnouncements] = useState([]);
 
@@ -576,6 +572,79 @@ const ShipperProfile = () => {
   //     setNewReview('');
   //   }
   // };
+
+    const handleChat = () => {
+    setIsSending(true);
+
+    console.log(shipper)
+
+    const chatData = {
+      recieverName: shipper[0].completeUserData.companyName,
+      userName: localStorage.getItem('user'),
+      userId: localStorage.getItem('user'),
+      recieverID: shipper[0].completeUserData.userId,
+      lastMessage: "Hello, I am interested in your shipping services",
+      lastTimestamp: new Date().toISOString(),
+      timeCreated: new Date().toISOString(),
+      avatar: shipper[0].completeUserData.avatar,
+      read: false
+    };
+
+    fetch("https://spaceshare-backend.onrender.com/create-chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(chatData),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to create chat");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        const chatId = data.insertedId;
+
+        const newMessage = {
+          chatId: chatId,
+          recieverName: shipper[0].completeUserData.companyName,
+          userName: localStorage.getItem('user'),
+          userId: localStorage.getItem('user'),
+          recieverID: shipper[0].completeUserData.userId,
+          message: "Hello, I am interested in your shipping services",
+          timeCreated: new Date().toISOString(),
+          read: false,
+        };
+
+        return fetch("https://spaceshare-backend.onrender.com/send-message", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(newMessage),
+        });
+      })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to send message");
+        }
+        return response.json();
+      })
+      .then(() => {
+        setToastMessage("Chat and message sent successfully!");
+        setShowModal(false);
+        navigate("/chat");
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        setToastMessage("Failed to create chat or send message.");
+      })
+      .finally(() => {
+        setIsSending(false);
+        setTimeout(() => setToastMessage(null), 3000);
+      });
+  };
 
 const handleReviewSubmit = async (e) => {
   e.preventDefault();
@@ -675,7 +744,9 @@ const handleReviewSubmit = async (e) => {
 
     fetchShipper();
 
-    fetchReviews(localStorage.companyId)
+    fetchReviews(localStorage.companyId);
+
+    setIsLoggedIn(!!localStorage.getItem("token"));
 
 
   }, [companyReviewId]);
@@ -710,6 +781,35 @@ const handleReviewSubmit = async (e) => {
     .shipper-content {
       max-width: 1200px;
       margin: 0 auto;
+    }
+
+    .action-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 0.75rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin: 3px;
+    }
+
+    .chat-btn {
+      background: linear-gradient(135deg, #133E87 0%, #608BC1 100%);
+      color: white;
+      box-shadow: 0 4px 15px rgba(19, 62, 135, 0.3);
+    }
+
+    .chat-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(19, 62, 135, 0.4);
+    }
+
+    .chat-btn:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
     }
 
     .breadcrumb-container {
@@ -753,6 +853,16 @@ const handleReviewSubmit = async (e) => {
     }
 
     .nav-tabs {
+      border-bottom: 2px solid #F3F3E0;
+      padding: 0 1.5rem;
+      flex: 0 0 auto;
+    }
+
+    .nav-tabs {
+      display: flex;
+      flex-direction: row;
+      gap: 1rem;
+      flex-wrap: wrap;
       border-bottom: 2px solid #F3F3E0;
       padding: 0 1.5rem;
     }
@@ -1127,6 +1237,28 @@ const handleReviewSubmit = async (e) => {
                 {deliveryCities.map(city => (
                   <span key={city} className="delivery-badge">{city}</span>
                 ))}
+              </div>
+
+              <div>
+                  {isLoggedIn && (
+                    <button
+                        className="action-btn chat-btn"
+                        onClick={() => handleChat()}
+                        disabled={isSending}
+                    >
+                        {isSending ? (
+                        <>
+                         <div className="spinner" />
+                          Sending...
+                        </>
+                          ) : (
+                        <>
+                        <IoChatbubbleEllipses size={16} />
+                          Chat
+                        </>
+                        )}
+                     </button>
+                   )}
               </div>
 
               <div className="tabs-container">
