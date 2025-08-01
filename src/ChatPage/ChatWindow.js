@@ -6,6 +6,7 @@ import moment from 'moment';
 import { io } from 'socket.io-client';
 import axios from 'axios'
 import MessageItem from './MessageItem';
+import '../components/sidebar.css';
 
 export default function ChatWindow({ chat, onBack, isMobile }) {
   const [showProfileModal, setShowProfileModal] = useState(false);
@@ -218,7 +219,7 @@ console.log(availableShipments)
   const fetchMessages = async (chatId) => {
     setIsLoadingMessages(true);
     try {
-      const response = await fetch("https://spaceshare-backend.onrender.com/get-messages", {
+      const response = await fetch("https://space-share-chat.onrender.com/get-messages", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -253,7 +254,7 @@ console.log(availableShipments)
   const [socket, setSocket] = useState(null);
 
 useEffect(() => {
-  const newSocket = io('http://localhost:3001');
+  const newSocket = io('https://space-share-chat.onrender.com');
   setSocket(newSocket);
 
   return () => newSocket.disconnect();
@@ -307,8 +308,6 @@ const sendMessage = (message) => {
   }
 };
 
-// console.log(localStorage.companyName ? shipper[0]?.shippingAddress : userData?.shippingAddress)
-
   if (!chat) {
     return (
       <div className="h-100 d-flex justify-content-center align-items-center text-muted">
@@ -356,12 +355,12 @@ const sendMessage = (message) => {
             </div>
           </div>
 
-          {!loading && (
+          {/* {!loading && (
             <Button variant={ "primary"} size="sm" className="text-left d-flex align-items-center"   style={{ marginBottom: "1rem", padding: "0.25rem 0.75rem"}} 
             disabled={!userAddress || userAddress.trim() === ""} >           
             <span style={{ marginLeft: "1rem" }}>Send shipping address</span>
             </Button>
-          )}
+          )} */}
           
           
         <Dropdown align="end">
@@ -409,7 +408,8 @@ const sendMessage = (message) => {
               );
 
               // Safe name display
-              const displayName = isCurrentUser ? 'You' : msg.recieverName || msg.senderName || msg.userName || 'Unknown';
+              // const displayName = isCurrentUser ? 'You' : msg.recieverName || msg.senderName || msg.userName || 'Unknown';
+              const displayName = chat.recieverName === localStorage.getItem('user') || chat.recieverName === localStorage.getItem('companyName') ? chat.userId : chat.recieverName;
 
               return (
                 <MessageItem

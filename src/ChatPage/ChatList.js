@@ -143,6 +143,9 @@ import React, { useState, useEffect } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import axios from "axios";
 import { IoSearch, IoTime, IoCheckmarkDone, IoMailUnread } from 'react-icons/io5';
+import '../components/sidebar.css';
+import io from 'socket.io-client';
+
 
 const ChatList = ({ onSelectChat }) => {
   // [All your existing state and function declarations remain exactly the same]
@@ -150,12 +153,14 @@ const ChatList = ({ onSelectChat }) => {
   const [chatList, setChatList] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const [socket, setSocket] = useState(null);
+
   // [All your existing functions remain exactly the same]
   const fetchChatList = async () => {
     const username = localStorage.getItem('companyName') || localStorage.getItem('user');
     try {
       setLoading(true);
-      const response = await axios.post('https://spaceshare-backend.onrender.com/get-chats', { username });
+      const response = await axios.post('https://space-share-chat.onrender.com/get-chats', { username });
       setChatList(response.data);
     } catch (error) {
       console.error('Error fetching packages:', error);
@@ -164,19 +169,35 @@ const ChatList = ({ onSelectChat }) => {
     }
   };
 
+  // const handleSelectChat = async (chat) => {
+  //   if (!chat.read) {
+  //     try {
+  //       await axios.put(`https://spaceshare-backend.onrender.com/edit-chats/${chat._id}`, { read: true });
+  //       setChatList(prevChats =>
+  //         prevChats.map(c => (c._id === chat._id ? { ...c, read: true } : c))
+  //       );
+  //     } catch (err) {
+  //       console.error("Failed to mark chat as read:", err);
+  //     }
+  //   }
+  //   onSelectChat(chat);
+  // };
+
   const handleSelectChat = async (chat) => {
-    if (!chat.read) {
-      try {
-        await axios.put(`https://spaceshare-backend.onrender.com/edit-chats/${chat._id}`, { read: true });
-        setChatList(prevChats =>
+  if (!chat.read) {
+    try {
+      // await axios.put(`https://space-share-chat.onrender.com/edit-chats/${chat._id}`, { read: true });
+      await axios.put(`https://spaceshare-backend.onrender.com/edit-chats/${chat._id}`, { read: true });
+      // No need to manually update state here - it will be handled by the socket update
+      setChatList(prevChats =>
           prevChats.map(c => (c._id === chat._id ? { ...c, read: true } : c))
         );
-      } catch (err) {
-        console.error("Failed to mark chat as read:", err);
-      }
+    } catch (err) {
+      console.error("Failed to mark chat as read:", err);
     }
-    onSelectChat(chat);
-  };
+  }
+  onSelectChat(chat);
+ };
 
   useEffect(() => {
     fetchChatList();
@@ -189,6 +210,50 @@ const ChatList = ({ onSelectChat }) => {
   const filteredChats = chatList.filter(chat =>
     filter === 'all' ? true : filter === 'unread' ? !chat.read : chat.read
   );
+
+    useEffect(() => {
+    // Initialize socket connection
+    const newSocket = io('https://space-share-chat.onrender.com');
+    setSocket(newSocket);
+
+    return () => {
+      // Clean up on unmount
+      newSocket.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    // Listen for new chats
+    socket.on('new-chat', (newChat) => {
+      setChatList(prevChats => {
+        // Check if chat already exists to avoid duplicates
+        const exists = prevChats.some(chat => chat._id === newChat._id);
+        if (!exists) {
+          // Add new chat and sort by timestamp
+          return [...prevChats, newChat].sort((a, b) => 
+            new Date(b.lastTimestamp) - new Date(a.lastTimestamp)
+          );
+        }
+        return prevChats;
+      });
+    });
+
+    // Listen for chat updates (like read status changes)
+    socket.on('update-chat', (updatedChat) => {
+      setChatList(prevChats => 
+        prevChats.map(chat => 
+          chat._id === updatedChat.id ? { ...chat, ...updatedChat } : chat
+        )
+      );
+    });
+
+    return () => {
+      socket.off('new-chat');
+      socket.off('update-chat');
+    };
+  }, [socket]);
 
   const customStyles = `
     .chatlist-container {
