@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Search, Package, ShoppingCart, MessageCircle, Calendar, MapPin, User, X, Send, Loader } from 'lucide-react';
 
 const MarketOffers = () => {
   const [view, setView] = useState("buyers"); // "buyers" or "sellers"
   const [search, setSearch] = useState("");
+
+  const navigate = useNavigate();
 
   const [isLoggedIn, setIsLoggedIn] = useState(false); // Simulating login status
   const [showModal, setShowModal] = useState(false);
@@ -14,6 +17,8 @@ const MarketOffers = () => {
 
   const [message, setMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
+
+  const [isLoading, setIsLoading] = useState(true);
 
   const [toastMessage, setToastMessage] = useState(null);
 
@@ -143,7 +148,7 @@ const MarketOffers = () => {
       .then(() => {
         setToastMessage("Chat and message sent successfully!");
         setShowModal(false);
-        // navigate("/chat");
+        navigate("/chat");
       })
       .catch((error) => {
         if (error !== "Chat already exists") {
@@ -166,27 +171,54 @@ const MarketOffers = () => {
   };
 
   // Function to fetch packages from the server
-  const fetchSellPackages = async () => {
-    const type = "sell";
-    try {
-      const response = await fetch('https://spaceshare-backend.onrender.com/packages?' + new URLSearchParams({ type }));
-      const data = await response.json();
-      setSellPackages(data); // Update state with fetched packages
-    } catch (error) {
-      console.error('Error fetching packages:', error);
-    }
-  };
+  // const fetchSellPackages = async () => {
+  //   const type = "sell";
+  //   try {
+  //     const response = await fetch('https://spaceshare-backend.onrender.com/packages?' + new URLSearchParams({ type }));
+  //     const data = await response.json();
+  //     setSellPackages(data); // Update state with fetched packages
+  //   } catch (error) {
+  //     console.error('Error fetching packages:', error);
+  //   }
+  // };
 
+  const fetchSellPackages = async () => {
+  const type = "sell";
+  try {
+    setIsLoading(true);
+    const response = await fetch('https://spaceshare-backend.onrender.com/packages?' + new URLSearchParams({ type }));
+    const data = await response.json();
+    setSellPackages(data);
+  } catch (error) {
+    console.error('Error fetching packages:', error);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+  // const fetchBuyPackages = async () => {
+  //   const type = "buy";
+  //   try {
+  //     const response = await fetch('https://spaceshare-backend.onrender.com/packages?' + new URLSearchParams({ type }));
+  //     const data = await response.json();
+  //     setBuyPackages(data); // Update state with fetched packages
+  //   } catch (error) {
+  //     console.error('Error fetching packages:', error);
+  //   }
+  // };
   const fetchBuyPackages = async () => {
-    const type = "buy";
-    try {
-      const response = await fetch('https://spaceshare-backend.onrender.com/packages?' + new URLSearchParams({ type }));
-      const data = await response.json();
-      setBuyPackages(data); // Update state with fetched packages
-    } catch (error) {
-      console.error('Error fetching packages:', error);
-    }
-  };
+  const type = "buy";
+  try {
+    setIsLoading(true);
+    const response = await fetch('https://spaceshare-backend.onrender.com/packages?' + new URLSearchParams({ type }));
+    const data = await response.json();
+    setBuyPackages(data);
+  } catch (error) {
+    console.error('Error fetching packages:', error);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   // Filter data by search input
   const filterOffers = (offers) =>
@@ -261,15 +293,15 @@ const MarketOffers = () => {
           <div className="offer-details">
             <div className="detail-item">
               <Package size={14} />
-              <span>{offer.goodsType}</span>
+              <span>Goods type: </span> <strong><span>{offer.goodsType}</span></strong>
             </div>
             <div className="detail-item">
               <MapPin size={14} />
-              <span>{offer.departure} → {offer.destination}</span>
+              <span>Travel Plan: </span> <strong><span>{offer.departure} → {offer.destination}</span> </strong>
             </div>
             <div className="detail-item">
               <Calendar size={14} />
-              <span>{offer.departureDate}</span>
+              <span>Depature Date: </span> <strong> <span>{offer.departureDate}</span></strong>
             </div>
           </div>
         </div>
@@ -761,6 +793,38 @@ const MarketOffers = () => {
         margin: 1rem;
       }
     }
+
+    .loading-container {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+    text-align: center;
+  }
+
+  .loading-spinner {
+    width: 60px;
+    height: 60px;
+    border: 4px solid #CBDCEB;
+    border-radius: 50%;
+    border-top-color: #133E87;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1.5rem;
+  }
+
+  .loading-text {
+    font-size: 1.1rem;
+    color: #608BC1;
+    font-weight: 500;
+    margin: 0;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
   `;
 
   return (
@@ -801,13 +865,30 @@ const MarketOffers = () => {
             </button>
           </div>
 
-          <div className="offers-grid">
+          {/* <div className="offers-grid">
             {view === "buyers" &&
               filterOffers(buyPackages).map((offer) => renderOfferCard(offer, "buyers"))}
             {view === "sellers" &&
               filterOffers(sellPackages).map((offer) =>
                 renderOfferCard(offer, "sellers")
               )}
+          </div> */}
+          <div className="offers-grid">
+            {isLoading ? (
+              <div className="loading-container">
+                <div className="loading-spinner"></div>
+                <p className="loading-text">Loading offers...</p>
+              </div>
+            ) : (
+              <>
+                {view === "buyers" &&
+                  filterOffers(buyPackages).map((offer) => renderOfferCard(offer, "buyers"))}
+                {view === "sellers" &&
+                  filterOffers(sellPackages).map((offer) =>
+                    renderOfferCard(offer, "sellers")
+                  )}
+              </>
+            )}
           </div>
 
           {showModal && (
