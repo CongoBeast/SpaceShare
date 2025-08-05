@@ -604,7 +604,7 @@ const ShipperCardPage = () => {
                     <p className="detail-item">
                       <span className="detail-label">Rating: </span>
                       <span className="rating">
-                        {shipper.rating} ★
+                        {shipper.rating} ★★★★
                       </span>
                     </p>
                   </div>
