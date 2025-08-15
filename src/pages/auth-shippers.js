@@ -465,12 +465,12 @@ const AuthShipperPage = () => {
         avatarUrl = uploadRes.data.url;
       }
   
-      const userID = generateUserID(formData.companyName);
+      const userID = generateUserID(formData.companyName.trim());
       const hqLocation = `${formData.hqCity}, ${formData.hqCountry}`;
   
       const requestData = {
         ...formData,
-        companyName: formData.companyName,
+        companyName: formData.companyName.trim(),
         userID,
         hqLocation,
         avatar: avatarUrl,
