@@ -78,7 +78,14 @@ const ShipperDashboard = () => {
 
       setShipper(shipperData);
 
-      setDeliveryCities(shipperData[0].deliveryCities);
+      if(shipperData[0].deliveryCities.length > 0 ){
+        setDeliveryCities(shipperData[0].deliveryCities);
+      }
+      else{
+        setDeliveryCities([]);
+      }
+
+      // setDeliveryCities(shipperData[0].deliveryCities);
 
       setUserInfo({
       companyName: shipperData[0].completeUserData.companyName || '',
@@ -1107,3 +1114,4 @@ const ShipperDashboard = () => {
 };
 
 export default ShipperDashboard;
+
