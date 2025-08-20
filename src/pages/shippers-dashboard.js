@@ -552,32 +552,32 @@ const ShipperDashboard = () => {
       </Alert>
     )}
 
-    {!loading && deliveryCities.length > 0 ? (
-        <Card className="mb-4 shadow-sm">
-          <Card.Header className="d-flex justify-content-between align-items-center">
-            <strong>African Cities We Deliver To</strong>
-            <Button size="sm" onClick={() => setShowCitiesModal(true)}>
-              Edit Cities
-            </Button>
-          </Card.Header>
-          <Card.Body>
-            <div className="d-flex flex-wrap gap-2">
-              {shipper[0].deliveryCities.map(city => (
-                <Badge key={city} bg="primary" className="p-2">
-                  {city}
-                </Badge>
-              ))}
-            </div>
-          </Card.Body>
-        </Card>
-      ) : (
-        <Alert variant="warning" className="d-flex justify-content-between align-items-center">
-          <span>No delivery cities set yet.</span>
-          <Button size="sm" variant="primary" onClick={() => setShowCitiesModal(true)}>
-            Set Delivery Cities
-          </Button>
-        </Alert>
-      )}
+    // {!loading && deliveryCities.length > 0 ? (
+    //     <Card className="mb-4 shadow-sm">
+    //       <Card.Header className="d-flex justify-content-between align-items-center">
+    //         <strong>African Cities We Deliver To</strong>
+    //         <Button size="sm" onClick={() => setShowCitiesModal(true)}>
+    //           Edit Cities
+    //         </Button>
+    //       </Card.Header>
+    //       <Card.Body>
+    //         <div className="d-flex flex-wrap gap-2">
+    //           {shipper[0].deliveryCities.map(city => (
+    //             <Badge key={city} bg="primary" className="p-2">
+    //               {city}
+    //             </Badge>
+    //           ))}
+    //         </div>
+    //       </Card.Body>
+    //     </Card>
+    //   ) : (
+    //     <Alert variant="warning" className="d-flex justify-content-between align-items-center">
+    //       <span>No delivery cities set yet.</span>
+    //       <Button size="sm" variant="primary" onClick={() => setShowCitiesModal(true)}>
+    //         Set Delivery Cities
+    //       </Button>
+    //     </Alert>
+    //   )}
 
       {/* Shipping Rates Card */}
       {!loading  && shipperRates.length > 0 ? (
@@ -1114,4 +1114,5 @@ const ShipperDashboard = () => {
 };
 
 export default ShipperDashboard;
+
 
