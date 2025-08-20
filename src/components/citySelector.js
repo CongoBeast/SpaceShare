@@ -7,28 +7,63 @@ const CitySelector = ({ selectedCities, setSelectedCities }) => {
 
   // Hardcoded list of major African cities
   const africanCities = [
-    // North Africa
-    "Cairo", "Alexandria", "Giza", "Casablanca", "Rabat", 
-    "Tunis", "Algiers", "Tripoli", "Khartoum", "Nouakchott",
-    
-    // West Africa
-    "Lagos", "Abidjan", "Accra", "Kano", "Ibadan", 
-    "Dakar", "Bamako", "Ouagadougou", "Niamey", "Lomé",
-    "Porto-Novo", "Freetown", "Monrovia", "Banjul", "Conakry",
-    
-    // East Africa
-    "Nairobi", "Addis Ababa", "Dar es Salaam", "Mogadishu", 
-    "Kampala", "Kigali", "Bujumbura", "Djibouti", "Asmara",
-    
-    // Central Africa
-    "Kinshasa", "Lubumbashi", "Brazzaville", "Yaoundé", 
-    "Douala", "Bangui", "N'Djamena", "Malabo", "Libreville",
-    
-    // Southern Africa
-    "Johannesburg", "Cape Town", "Durban", "Pretoria", 
-    "Luanda", "Maputo", "Harare", "Lusaka", "Windhoek",
-    "Gaborone", "Maseru", "Manzini", "Lilongwe"
-  ];
+  // North Africa
+  "Cairo", "Alexandria", "Giza", "Sharm El Sheikh", "Luxor", "Aswan",          // Egypt
+  "Casablanca", "Rabat", "Marrakesh", "Fes", "Tangier",                        // Morocco
+  "Tunis", "Sfax", "Sousse", "Bizerte",                                        // Tunisia
+  "Algiers", "Oran", "Constantine", "Annaba",                                  // Algeria
+  "Tripoli", "Benghazi", "Misrata", "Sabha",                                   // Libya
+  "Khartoum", "Omdurman", "Port Sudan", "Nyala",                               // Sudan
+  "Nouakchott", "Nouadhibou", "Kaédi", "Rosso",                                // Mauritania
+  
+  // West Africa
+  "Lagos", "Kano", "Ibadan", "Abuja", "Port Harcourt", "Benin City",           // Nigeria
+  "Abidjan", "Bouaké", "Yamoussoukro", "San Pedro",                            // Ivory Coast
+  "Accra", "Kumasi", "Tamale", "Takoradi",                                     // Ghana
+  "Dakar", "Saint-Louis", "Thiès", "Ziguinchor",                               // Senegal
+  "Bamako", "Sikasso", "Mopti", "Kayes",                                       // Mali
+  "Ouagadougou", "Bobo-Dioulasso", "Koudougou", "Banfora",                     // Burkina Faso
+  "Niamey", "Zinder", "Maradi", "Agadez",                                      // Niger
+  "Lomé", "Sokodé", "Kara", "Kpalimé",                                         // Togo
+  "Porto-Novo", "Cotonou", "Parakou", "Bohicon",                               // Benin
+  "Freetown", "Bo", "Kenema", "Makeni",                                        // Sierra Leone
+  "Monrovia", "Gbarnga", "Kakata", "Bensonville",                              // Liberia
+  "Banjul", "Serekunda", "Brikama", "Bakau",                                   // Gambia
+  "Conakry", "Nzérékoré", "Kankan", "Kindia",                                  // Guinea
+  
+  // East Africa
+  "Nairobi", "Mombasa", "Kisumu", "Nakuru",                                    // Kenya
+  "Addis Ababa", "Dire Dawa", "Mekelle", "Gondar",                             // Ethiopia
+  "Dar es Salaam", "Dodoma", "Mwanza", "Arusha",                               // Tanzania
+  "Mogadishu", "Hargeisa", "Bosaso", "Kismayo",                                // Somalia
+  "Kampala", "Entebbe", "Gulu", "Mbarara",                                     // Uganda
+  "Kigali", "Butare", "Gisenyi", "Musanze",                                    // Rwanda
+  "Bujumbura", "Gitega", "Ngozi", "Rumonge",                                   // Burundi
+  "Djibouti", "Ali Sabieh", "Tadjourah", "Obock",                              // Djibouti
+  "Asmara", "Keren", "Massawa", "Assab",                                       // Eritrea
+  
+  // Central Africa
+  "Kinshasa", "Lubumbashi", "Mbuji-Mayi", "Kisangani",                         // DRC
+  "Brazzaville", "Pointe-Noire", "Dolisie", "Nkayi",                           // Republic of Congo
+  "Yaoundé", "Douala", "Garoua", "Bamenda",                                    // Cameroon
+  "Bangui", "Bimbo", "Berbérati", "Bria",                                      // Central African Republic
+  "N'Djamena", "Moundou", "Sarh", "Abéché",                                    // Chad
+  "Malabo", "Bata", "Ebebiyín", "Mongomo",                                     // Equatorial Guinea
+  "Libreville", "Port-Gentil", "Franceville", "Oyem",                          // Gabon
+  
+  // Southern Africa
+  "Johannesburg", "Cape Town", "Durban", "Pretoria", "Soweto", "Port Elizabeth", "Bloemfontein",   // South Africa
+  "Luanda", "Huambo", "Benguela", "Lubango",                                   // Angola
+  "Maputo", "Beira", "Nampula", "Quelimane",                                   // Mozambique
+  "Harare", "Bulawayo", "Mutare", "Gweru",                                     // Zimbabwe
+  "Lusaka", "Ndola", "Kitwe", "Livingstone",                                   // Zambia
+  "Windhoek", "Walvis Bay", "Swakopmund", "Rundu",                             // Namibia
+  "Gaborone", "Francistown", "Maun", "Selebi-Phikwe",                          // Botswana
+  "Maseru", "Teyateyaneng", "Mafeteng", "Hlotse",                              // Lesotho
+  "Manzini", "Mbabane", "Big Bend", "Malkerns",                                // Eswatini
+  "Lilongwe", "Blantyre", "Mzuzu", "Zomba"                                     // Malawi
+];
+
 
   // Search cities when search term changes
   useEffect(() => {
@@ -106,5 +141,6 @@ const CitySelector = ({ selectedCities, setSelectedCities }) => {
     </div>
   );
 };
+
 
 export default CitySelector;
