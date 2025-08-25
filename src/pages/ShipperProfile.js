@@ -175,6 +175,8 @@ const handleReviewSubmit = async (e) => {
       const response = await axios.post('https://spaceshare-backend.onrender.com/get-reviews', { companyId });
       const data = response.data;
 
+      console.log(companyId)
+
       if (data) setCompanyReviews(data);
       else console.warn("No reviews found.");
     } catch (error) {
@@ -194,12 +196,13 @@ const handleReviewSubmit = async (e) => {
         const shipperData = response.data;
         setShipper(shipperData);
 
-        if(shipperData[0].deliveryCities.length > 0){
-          setDeliveryCities(shipperData[0].deliveryCities)
-        }
-        else{
-          setDeliveryCities([])
-        }
+        // if(shipperData[0].deliveryCities.length > 0){
+        //   setDeliveryCities(shipperData[0].deliveryCities)
+        // }
+        // else{
+        //   setDeliveryCities([])
+        // }
+        setDeliveryCities([])
 
         // 2. Extract and store companyId
         const companyId = shipperData[0].completeUserData.userID;
@@ -1040,6 +1043,7 @@ const handleReviewSubmit = async (e) => {
 
 
 export default ShipperProfile;
+
 
 
 
