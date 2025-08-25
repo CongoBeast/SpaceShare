@@ -729,11 +729,6 @@ const handleReviewSubmit = async (e) => {
 
               <p className="info-text"><strong>Cities we deliver to: </strong></p>
                       
-                      {/* <div>
-                 {deliveryCities.map(city => (
-                   <span key={city} className="delivery-badge">{city}</span>
-                 ))}
-              </div> */}
 
               <div>
                   {isLoggedIn && (
@@ -1045,5 +1040,6 @@ const handleReviewSubmit = async (e) => {
 
 
 export default ShipperProfile;
+
 
 
