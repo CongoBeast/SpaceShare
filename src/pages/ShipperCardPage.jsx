@@ -41,7 +41,8 @@ const ShipperCardPage = () => {
   };
 
   const handleShipperProfile = (companyName) => {
-    navigate(`/shipper-profile/${companyName}`);
+    cleanCompanyName = companyName.trim();
+    navigate(`/shipper-profile/${cleanCompanyName}`);
   };
 
   const handleChat = (shipper) => {
@@ -682,5 +683,6 @@ const ShipperCardPage = () => {
     </>
   );
 };
+
 
 export default ShipperCardPage;
