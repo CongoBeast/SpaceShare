@@ -728,11 +728,12 @@ const handleReviewSubmit = async (e) => {
               <p className="info-text"><strong>Contact:</strong> {shipper[0].completeUserData.email} | {shipper[0].completeUserData.phoneNumber}</p>
 
               <p className="info-text"><strong>Cities we deliver to: </strong></p>
-              <div>
-                // {deliveryCities.map(city => (
-                //   <span key={city} className="delivery-badge">{city}</span>
-                // ))}
-              </div>
+                      
+                      {/* <div>
+                 {deliveryCities.map(city => (
+                   <span key={city} className="delivery-badge">{city}</span>
+                 ))}
+              </div> */}
 
               <div>
                   {isLoggedIn && (
@@ -1044,4 +1045,5 @@ const handleReviewSubmit = async (e) => {
 
 
 export default ShipperProfile;
+
 
