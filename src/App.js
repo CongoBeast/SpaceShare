@@ -57,7 +57,7 @@ function App() {
           <Route path="/track" element={<TrackShipment/>}></Route>
         </Routes>
       </div>
-    
+        <Analytics />
     </div>
     </Router>
   );
