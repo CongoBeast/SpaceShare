@@ -21,7 +21,7 @@ import AuthShipperPage from './pages/auth-shippers.js'
 import ShipperProfile from './pages/ShipperProfile.js'
 import ManageShipments from './pages/manageShipments.js'
 import TrackShipment from './pages/track.js'
-
+import { Analytics } from "@vercel/analytics/react"
 
 function App() {
   return (
