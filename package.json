@@ -25,7 +25,7 @@
     "web-vitals": "^4.2.4"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "react-scripts start && npm install --legacy-peer-deps",
     "build": "react-scripts build && node generate-sitemap.js",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
