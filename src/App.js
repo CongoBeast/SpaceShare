@@ -22,6 +22,7 @@ import ShipperProfile from './pages/ShipperProfile.js'
 import ManageShipments from './pages/manageShipments.js'
 import TrackShipment from './pages/track.js'
 import { Analytics } from "@vercel/analytics/react"
+import { SpeedInsights } from "@vercel/speed-insights/react"
 
 function App() {
   return (
@@ -58,6 +59,7 @@ function App() {
         </Routes>
       </div>
         <Analytics />
+        <SpeedInsights />
     </div>
     </Router>
   );
