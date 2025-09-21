@@ -133,7 +133,7 @@ const AuthPage = () => {
         : 'The account registration was successful';
 
       // Simulated API call - replace with your actual endpoint
-      const response = await fetch(`https://spaceshare-backend.onrender.com/${endpoint}`, {
+      const response = await fetch(`https://space-share-backend.vercel.app/${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -159,7 +159,7 @@ const AuthPage = () => {
         };
 
         // Send notification
-        fetch('https://spaceshare-backend.onrender.com/set-notification', {
+        fetch('https://space-share-backend.vercel.app/set-notification', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -611,5 +611,6 @@ const AuthPage = () => {
     </div>
   );
 };
+
 
 export default AuthPage;
