@@ -109,7 +109,7 @@ const AuthPage = () => {
         formDataImage.append('image', avatarFile);
 
         // Simulated upload - replace with your actual endpoint
-        const uploadRes = await fetch('https://space-share-backend.vercel.app/upload', {
+        const uploadRes = await fetch('https://spaceshare-backend.onrender.com/upload', {
           method: 'POST',
           body: formDataImage,
         });
@@ -133,7 +133,7 @@ const AuthPage = () => {
         : 'The account registration was successful';
 
       // Simulated API call - replace with your actual endpoint
-      const response = await fetch(`https://space-share-backend.vercel.app/${endpoint}`, {
+      const response = await fetch(`https://spaceshare-backend.onrender.com/${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -159,7 +159,7 @@ const AuthPage = () => {
         };
 
         // Send notification
-        fetch('https://space-share-backend.vercel.app/set-notification', {
+        fetch('https://spaceshare-backend.onrender.com/set-notification', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -614,4 +614,5 @@ const AuthPage = () => {
 
 
 export default AuthPage;
+
 
