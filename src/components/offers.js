@@ -75,6 +75,61 @@ const MarketOffers = () => {
     }, 2000);
   };
 
+  const usePushNotifications = () => {
+  const registerServiceWorker = async () => {
+    if ('serviceWorker' in navigator && 'PushManager' in window) {
+      try {
+        const registration = await navigator.serviceWorker.register('/sw.js');
+        return registration;
+      } catch (error) {
+        console.error('Service Worker registration failed:', error);
+      }
+    }
+  };
+
+  const requestNotificationPermission = async () => {
+    if ('Notification' in window) {
+      const permission = await Notification.requestPermission();
+      return permission === 'granted';
+    }
+    return false;
+  };
+
+  const subscribeToNotifications = async () => {
+    try {
+      const registration = await registerServiceWorker();
+      const hasPermission = await requestNotificationPermission();
+      
+      if (!hasPermission || !registration) {
+        return null;
+      }
+
+      const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: 'BK7dxcNdI2llF77NsAfx6I8Bve-Xkq0na15Vhi59dtipUwDVskIZsNly2xrsjMNZ7XgyeNN66xOQ9HUqdeaVPM0' // Generate VAPID keys
+      });
+
+      // Send subscription to your backend
+      await fetch('https://spaceshare-backend.onrender.com/subscribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          subscription,
+          userId: localStorage.getItem('user')
+        }),
+      });
+
+      return subscription;
+    } catch (error) {
+      console.error('Push subscription failed:', error);
+    }
+  };
+
+  return { subscribeToNotifications };
+};
+
   const handleSubmit = () => {
     setIsSending(true);
 
@@ -324,9 +379,15 @@ const MarketOffers = () => {
   );
 
   useEffect(() => {
+    const { subscribeToNotifications } = usePushNotifications();
+    
     fetchBuyPackages();
     fetchSellPackages();
     setIsLoggedIn(!!localStorage.getItem("token"));
+
+    if (localStorage.getItem('token')) {
+    subscribeToNotifications();
+  }
   }, []);
 
   const formatReviewDate = (dateString) => {
@@ -958,5 +1019,6 @@ const MarketOffers = () => {
     </>
   );
 };
+
 
 export default MarketOffers;
