@@ -378,9 +378,10 @@ const MarketOffers = () => {
     </div>
   );
 
+  const { subscribeToNotifications } = usePushNotifications();
+
   useEffect(() => {
-    const { subscribeToNotifications } = usePushNotifications();
-    
+  
     fetchBuyPackages();
     fetchSellPackages();
     setIsLoggedIn(!!localStorage.getItem("token"));
@@ -388,7 +389,7 @@ const MarketOffers = () => {
     if (localStorage.getItem('token')) {
     subscribeToNotifications();
   }
-  }, []);
+  }, [subscribeToNotifications]);
 
   const formatReviewDate = (dateString) => {
     const date = new Date(dateString);
@@ -1022,3 +1023,4 @@ const MarketOffers = () => {
 
 
 export default MarketOffers;
+
