@@ -109,7 +109,7 @@ const AuthPage = () => {
         formDataImage.append('image', avatarFile);
 
         // Simulated upload - replace with your actual endpoint
-        const uploadRes = await fetch('https://spaceshare-backend.onrender.com/upload', {
+        const uploadRes = await fetch('https://space-share-backend.vercel.app/upload', {
           method: 'POST',
           body: formDataImage,
         });
@@ -614,3 +614,4 @@ const AuthPage = () => {
 
 
 export default AuthPage;
+
