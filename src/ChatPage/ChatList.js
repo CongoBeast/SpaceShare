@@ -160,7 +160,7 @@ const ChatList = ({ onSelectChat }) => {
     const username = localStorage.getItem('companyName') || localStorage.getItem('user');
     try {
       setLoading(true);
-      const response = await axios.post('https://space-share-chat.onrender.com/get-chats', { username });
+      const response = await axios.post('https://space-share-chat-nw7k.onrender.com/get-chats', { username });
       setChatList(response.data);
     } catch (error) {
       console.error('Error fetching packages:', error);
@@ -213,7 +213,7 @@ const ChatList = ({ onSelectChat }) => {
 
     useEffect(() => {
     // Initialize socket connection
-    const newSocket = io('https://space-share-chat.onrender.com');
+    const newSocket = io('https://space-share-chat-nw7k.onrender.com/');
     setSocket(newSocket);
 
     return () => {
@@ -556,5 +556,6 @@ const ChatList = ({ onSelectChat }) => {
     </>
   );
 };
+
 
 export default ChatList;
