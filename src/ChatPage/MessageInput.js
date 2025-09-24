@@ -85,10 +85,10 @@ export default function MessageInput({ chat , sendMessage}) {
         console.log(uploadResponse.data.url)
       }
       // First, send the new message
-      await axios.post('https://space-share-chat.onrender.com/send-message', newMessage);
+      await axios.post('https://space-share-chat-nw7k.onrender.com/send-message', newMessage);
       
       // Then update the chat's last message and timestamp
-      await axios.put(`https://space-share-chat.onrender.com/edit-chats/${chat._id}`, {
+      await axios.put(`https://space-share-chat-nw7k.onrender.com/edit-chats/${chat._id}`, {
         lastMessage: message,
         lastTimestamp: new Date().toISOString(),
         read: false
@@ -142,10 +142,10 @@ export default function MessageInput({ chat , sendMessage}) {
         newMessage.imageLink = uploadResponse.data.url;
       }
       // First, send the new message
-      await axios.post('https://space-share-chat.onrender.com/send-message', newMessage);
+      await axios.post('https://space-share-chat-nw7k.onrender.com/send-message', newMessage);
       
       // Then update the chat's last message and timestamp
-      await axios.put(`https://space-share-chat.onrender.com/edit-chats/${chat._id}`, {
+      await axios.put(`https://space-share-chat-nw7k.onrender.com/edit-chats/${chat._id}`, {
         lastMessage: message,
         lastTimestamp: new Date().toISOString(),
         read: false
@@ -260,3 +260,4 @@ export default function MessageInput({ chat , sendMessage}) {
         </div>
   );
 }
+
