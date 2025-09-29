@@ -75,7 +75,7 @@ const MarketOffers = () => {
     }, 2000);
   };
 
-  const usePushNotifications = () => {
+  const usePushs = () => {
   const registerServiceWorker = async () => {
     if ('serviceWorker' in navigator && 'PushManager' in window) {
       try {
@@ -87,18 +87,18 @@ const MarketOffers = () => {
     }
   };
 
-  const requestNotificationPermission = async () => {
-    if ('Notification' in window) {
-      const permission = await Notification.requestPermission();
+  const requestPermission = async () => {
+    if ('' in window) {
+      const permission = await .requestPermission();
       return permission === 'granted';
     }
     return false;
   };
 
-  const subscribeToNotifications = async () => {
+  const subscribeTos = async () => {
     try {
       const registration = await registerServiceWorker();
-      const hasPermission = await requestNotificationPermission();
+      const hasPermission = await requestPermission();
       
       if (!hasPermission || !registration) {
         return null;
@@ -378,7 +378,7 @@ const MarketOffers = () => {
     </div>
   );
 
-  const { subscribeToNotifications } = usePushNotifications();
+  const { subscribeTos } = usePushs();
 
   useEffect(() => {
   
@@ -387,7 +387,7 @@ const MarketOffers = () => {
     setIsLoggedIn(!!localStorage.getItem("token"));
 
     if (localStorage.getItem('token')) {
-    subscribeToNotifications();
+    subscribeTos();
   }
   }, []);
 
@@ -410,6 +410,21 @@ const MarketOffers = () => {
       });
     }
   };
+
+  const testNotification = async () => {
+  console.log('=== Testing Notification ===');
+  
+  if (Notification.permission === 'granted') {
+    console.log('✅ Showing test notification...');
+    new Notification('Test Notification', {
+      body: 'If you see this, notifications are working!',
+      icon: '/icon-192x192.png',
+      tag: 'test-notification'
+    });
+  } else {
+    console.error('❌ No permission for notifications');
+  }
+};
 
   const customStyles = `
     .market-container {
@@ -911,6 +926,24 @@ const MarketOffers = () => {
             />
           </div>
 
+          <button 
+            onClick={testNotification}
+            style={{
+              position: 'fixed',
+              bottom: '20px',
+              left: '20px',
+              padding: '10px 20px',
+              background: '#133E87',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              zIndex: 9999
+            }}
+          >
+            Test Notification
+          </button>
+
           <div className="tab-container">
             <button
               className={`tab-button ${view === "buyers" ? "active" : ""}`}
@@ -1024,6 +1057,7 @@ const MarketOffers = () => {
 
 
 export default MarketOffers;
+
 
 
 
