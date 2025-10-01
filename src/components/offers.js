@@ -421,19 +421,6 @@ const MarketOffers = () => {
       body: 'If you see this, notifications are working!',
       icon: '/icon-192x192.png',
       tag: `notification-${Date.now()}`, // Unique tag for each notification
-      requireInteraction: false, // Allow auto-dismiss
-      renotify: true, // Show notification even if tag exists
-      vibrate: [200, 100, 200], // Vibration pattern for mobile
-      actions: [ // Add action buttons (mobile support varies)
-        {
-          action: 'open',
-          title: 'Open Chat'
-        },
-        {
-          action: 'close',
-          title: 'Dismiss'
-        }
-      ]
     });
   } else {
     console.error('❌ No permission for notifications');
@@ -1071,6 +1058,7 @@ const MarketOffers = () => {
 
 
 export default MarketOffers;
+
 
 
 
