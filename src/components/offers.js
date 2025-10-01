@@ -89,7 +89,7 @@ const MarketOffers = () => {
 
   const requestPermission = async () => {
     if ('' in window) {
-      const permission = await .requestPermission();
+      const permission = await requestPermission();
       return permission === 'granted';
     }
     return false;
@@ -1057,6 +1057,7 @@ const MarketOffers = () => {
 
 
 export default MarketOffers;
+
 
 
 
