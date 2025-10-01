@@ -416,6 +416,7 @@ const MarketOffers = () => {
   
   if (Notification.permission === 'granted') {
     console.log('✅ Showing test notification...');
+     alert("Notification sent successfully!")
     new Notification('Test Notification', {
       body: 'If you see this, notifications are working!',
       icon: '/icon-192x192.png',
@@ -1057,6 +1058,7 @@ const MarketOffers = () => {
 
 
 export default MarketOffers;
+
 
 
 
