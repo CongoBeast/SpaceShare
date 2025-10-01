@@ -937,8 +937,7 @@ const MarketOffers = () => {
               color: 'white',
               border: 'none',
               borderRadius: '8px',
-              cursor: 'pointer',
-              zIndex: 9999
+              cursor: 'pointer'
             }}
           >
             Test Notification
@@ -1058,6 +1057,7 @@ const MarketOffers = () => {
 
 
 export default MarketOffers;
+
 
 
 
