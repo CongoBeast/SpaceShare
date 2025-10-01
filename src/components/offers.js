@@ -127,7 +127,7 @@ const MarketOffers = () => {
     }
   };
 
-  return { subscribeToNotifications };
+  return { subscribeTos };
 };
 
   const handleSubmit = () => {
@@ -1057,6 +1057,7 @@ const MarketOffers = () => {
 
 
 export default MarketOffers;
+
 
 
 
