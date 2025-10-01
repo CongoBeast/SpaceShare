@@ -928,17 +928,17 @@ const MarketOffers = () => {
 
           <button 
             onClick={testNotification}
-            style={{
-              position: 'fixed',
-              bottom: '20px',
-              left: '20px',
-              padding: '10px 20px',
-              background: '#133E87',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer'
-            }}
+            // style={{
+            //   position: 'fixed',
+            //   bottom: '20px',
+            //   left: '20px',
+            //   padding: '10px 20px',
+            //   background: '#133E87',
+            //   color: 'white',
+            //   border: 'none',
+            //   borderRadius: '8px',
+            //   cursor: 'pointer'
+            // }}
           >
             Test Notification
               <Package size={20} />
@@ -1057,6 +1057,7 @@ const MarketOffers = () => {
 
 
 export default MarketOffers;
+
 
 
 
