@@ -1,0 +1,18 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 18  # or 16, depending on your project
+    commands:
+      - echo Installing dependencies...
+      - npm install
+  build:
+    commands:
+      - echo Building the React app...
+      - npm run build
+
+artifacts:
+  files:
+    - '**/*'
+  base-directory: build   # React puts the built app here
